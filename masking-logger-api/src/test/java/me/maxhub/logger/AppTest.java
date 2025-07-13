@@ -1,4 +1,4 @@
-package me.maxhub.mcb.stmts;
+package me.maxhub.logger;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

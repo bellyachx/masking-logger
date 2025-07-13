@@ -4,17 +4,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import me.maxhub.logger.encoder.impl.JsonEncoder;
 import me.maxhub.logger.mask.DataMasker;
 import me.maxhub.logger.properties.PropertyProvider;
 
 public class JsonMasker implements DataMasker {
 
+    private final NOPMasker nopMasker = new NOPMasker();
     private final ObjectMapper objectMapper;
     private final PropertyProvider propertyProvider;
 
     public JsonMasker(ObjectMapper objectMapper, PropertyProvider propertyProvider) {
         this.objectMapper = objectMapper;
         this.propertyProvider = propertyProvider;
+        this.nopMasker.setMessageEncoder(new JsonEncoder(objectMapper));
     }
 
     public JsonMasker(PropertyProvider propertyProvider) {
@@ -22,13 +25,14 @@ public class JsonMasker implements DataMasker {
         objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper = objectMapper;
         this.propertyProvider = propertyProvider;
+        this.nopMasker.setMessageEncoder(new JsonEncoder(objectMapper));
     }
 
     @Override
     public Object mask(Object data) {
         var properties = propertyProvider.getProperties();
         if (Boolean.FALSE.equals(properties.getEnabled())) {
-            return data;
+            return nopMasker.mask(data);
         }
 
         var maskPaths = properties.getFields();

@@ -1,0 +1,46 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <import class="me.maxhub.logger.logback.encoder.MaskingJsonEncoder"/>
+    <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+
+    <import class="ch.qos.logback.core.rolling.RollingFileAppender"/>
+    <import class="ch.qos.logback.core.ConsoleAppender"/>
+
+    <import class="me.maxhub.logger.logback.filter.LoggerNameFilter"/>
+    <import class="ch.qos.logback.classic.filter.ThresholdFilter"/>
+
+    <appender name="STDOUT" class="ConsoleAppender">
+        <encoder class="PatternLayoutEncoder">
+            <outputPatternAsHeader>true</outputPatternAsHeader>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender level="info" name="rollingFile" class="RollingFileAppender">
+        <filter class="ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <filter class="LoggerNameFilter">
+            <include>me.maxhub</include>
+            <ignore>me.maxhub.logger.encoder</ignore>
+            <ignore>me.maxhub.logger.logback</ignore>
+            <ignore>me.maxhub.logger.mask</ignore>
+            <ignore>me.maxhub.logger.properties</ignore>
+            <ignore>me.maxhub.logger.spring</ignore>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>3MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder class="MaskingJsonEncoder">
+            <enableMasker>${ENABLE_MASKER:-true}</enableMasker>
+            <defaultMasker>${DEFAULT_MASKER:-json}</defaultMasker>
+            <propertiesProvider>${PROPS_PROVIDER:-other}</propertiesProvider>
+        </encoder>
+    </appender>
+</configuration>

@@ -1,7 +1,0 @@
-logging:
-  mask:
-    enabled: true
-    fields:
-      - "/string"
-      - "/integer"
-      - "/stringList/#/"
