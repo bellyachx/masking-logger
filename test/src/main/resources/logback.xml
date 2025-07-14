@@ -1,0 +1,41 @@
+<configuration>
+    <include resource="masking-logback.xml"/>
+    <property name="ENABLE_MASKER" value="true"/>
+    <property name="DEFAULT_MASKER" value="json"/>
+<!--    <property name="PROPS_PROVIDER" value="spring"/>-->
+
+    <appender level="info" name="customRollingFile" class="RollingFileAppender">
+        <filter class="ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <filter class="LoggerNameFilter">
+            <include>me.maxhub</include>
+            <include>bober</include>
+            <ignore>me.maxhub.logger.SpringBootApp</ignore>
+            <ignore>me.maxhub.logger.encoder</ignore>
+            <ignore>me.maxhub.logger.logback</ignore>
+            <ignore>me.maxhub.logger.mask</ignore>
+            <ignore>me.maxhub.logger.properties</ignore>
+            <ignore>me.maxhub.logger.spring</ignore>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>3MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder class="MaskingJsonEncoder">
+            <enableMasker>${ENABLE_MASKER:-true}</enableMasker>
+            <defaultMasker>${DEFAULT_MASKER:-json}</defaultMasker>
+            <propertiesProvider>${PROPS_PROVIDER:-other}</propertiesProvider>
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="customRollingFile"/>
+<!--        <appender-ref ref="rollingFile"/>-->
+    </root>
+</configuration>

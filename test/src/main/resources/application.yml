@@ -1,0 +1,9 @@
+logging:
+  mask:
+    enabled: true
+    fields:
+      - /string
+      - /testData/string
+      - /testDataList/#/bigDecimal
+      - /testDataList/#/testDataList/#/integer
+      - /stringList/#/
