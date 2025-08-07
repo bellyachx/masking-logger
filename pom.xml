@@ -10,7 +10,7 @@
     <name>masking-logger</name>
     <modules>
         <module>masking-logger-core</module>
-        <module>test</module>
+        <module>masking-logger-example</module>
         <module>masking-logger-api</module>
         <module>masking-logger-autoconfig</module>
         <module>masking-logger-spring</module>
