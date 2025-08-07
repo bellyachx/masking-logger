@@ -1,5 +1,6 @@
 package me.maxhub.logger.logback.encoder;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.encoder.EncoderBase;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -10,20 +11,23 @@ import lombok.Setter;
 import me.maxhub.logger.encoder.MessageEncoder;
 import me.maxhub.logger.encoder.impl.JsonEncoder;
 import me.maxhub.logger.encoder.impl.XmlEncoder;
+import me.maxhub.logger.headers.impl.DetailedHeadersProvider;
 import me.maxhub.logger.logback.encoder.model.LogModel;
 import me.maxhub.logger.logback.encoder.model.Tracing;
 import me.maxhub.logger.mask.DataMasker;
 import me.maxhub.logger.mask.enums.MaskerType;
-import me.maxhub.logger.properties.PropertyProvider;
+import me.maxhub.logger.properties.provider.PropertyProvider;
 import me.maxhub.logger.mask.impl.*;
-import me.maxhub.logger.properties.impl.FilePropertyProvider;
-import me.maxhub.logger.properties.impl.SpringPropertyProvider;
+import me.maxhub.logger.properties.provider.impl.FilePropertyProvider;
+import me.maxhub.logger.properties.provider.impl.SpringPropertyProvider;
 import me.maxhub.logger.spring.SpringContextHolder;
+import me.maxhub.logger.util.LoggingConstants;
+import me.maxhub.logger.util.MessageLifecycle;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.slf4j.event.KeyValuePair;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -41,6 +45,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
     private final JsonEncoder jsonEncoder;
     private final XmlEncoder xmlEncoder;
 
+    private PropertyProvider propertyProvider = new FilePropertyProvider();
     private JsonMasker jsonMasker;
     private XmlMasker xmlMasker;
     private DataMasker defaultDataMasker;
@@ -108,11 +113,11 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
     private String propertiesProvider;
 
     public MaskingJsonEncoder() {
-        var mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.registerModule(new JavaTimeModule());
-        this.mapper = mapper;
-        this.jsonEncoder = new JsonEncoder(mapper);
+        var objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.registerModule(new JavaTimeModule());
+        this.mapper = objectMapper;
+        this.jsonEncoder = new JsonEncoder(objectMapper);
         this.xmlEncoder = new XmlEncoder();
 
         try {
@@ -136,17 +141,19 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
 
     @Override
     public byte[] encode(ILoggingEvent event) {
-        var micbLogModelBuilder = LogModel.builder()
+        var logModel = LogModel.builder()
             .projectName(projectName)
             .podSource(podSource)
             .timestamp(event.getInstant())
+            .logMessage(event.getFormattedMessage())
+            .logLevel(event.getLevel().toString())
             .message(event.getFormattedMessage())
             .tracing(buildTracing());
-        fillWithProperties(micbLogModelBuilder, event);
+        fillWithProperties(logModel, event);
         // todo can we determine the approximate log size?
         var baos = new ByteArrayOutputStream();
         try {
-            mapper.writer().writeValues(baos).write(micbLogModelBuilder.build());
+            mapper.writer().writeValues(baos).write(logModel.build());
             baos.write(LINE_SEPARATOR);
         } catch (Throwable t) {
             addError("Cannot encode log event", t);
@@ -173,11 +180,10 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
     }
 
     private void initMasker() {
-        PropertyProvider propertyProvider = new FilePropertyProvider();
         if ("spring".equalsIgnoreCase(propertiesProvider)) {
             propertyProvider = new SpringPropertyProvider();
         }
-        jsonMasker = new JsonMasker(propertyProvider);
+        jsonMasker = new JsonMasker(mapper, propertyProvider);
         xmlMasker = new XmlMasker();
         // use JSON masker as default if 'defaultMasker' property is not provided.
         defaultDataMasker = jsonMasker;
@@ -207,30 +213,42 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
 
     private void fillWithProperties(LogModel.LogModelBuilder builder, ILoggingEvent event) {
         var dataMasker = defaultDataMasker;
-        Map<String, String> headers = null;
+        KeyValuePair headersKvp = null;
         Object messageBody = null;
+        var messageLifecycle = MessageLifecycle.ACTION;
+        String automatedSystem = null;
+        String opName = null;
         var keyValuePairs = event.getKeyValuePairs();
-        if (keyValuePairs == null) {
-            // return as we're relying on provided kvp for filling the log model.
-            return;
-        }
-        for (var kvp : keyValuePairs) {
-            switch (kvp.key) {
-                case "jsonObject" -> messageBody = kvp.value;
-                case "headers" -> headers = getHeaders(kvp);
-                case "information" -> builder.information(getString(kvp));
-                case "operation" -> builder.operationName(getString(kvp));
-                case "status" -> builder.status(getString(kvp));
-                case "masker" -> dataMasker = getMasker(kvp, dataMasker);
-                case null, default -> {}
+        if (Objects.nonNull(keyValuePairs)) {
+            for (var kvp : keyValuePairs) {
+                switch (kvp.key) {
+                    case LoggingConstants.MESSAGE_BODY -> messageBody = kvp.value;
+                    case LoggingConstants.HEADERS -> headersKvp = kvp;
+                    case LoggingConstants.OP_NAME -> opName = getString(kvp);
+                    case LoggingConstants.BODY_TYPE -> dataMasker = getMasker(kvp, defaultDataMasker);
+                    case LoggingConstants.MSG_LIFECYCLE -> messageLifecycle = getMessageLifecycle(kvp);
+                    case LoggingConstants.AS -> automatedSystem = getString(kvp);
+                    case LoggingConstants.STATUS -> builder.status(getStatus(kvp, event));
+                }
             }
         }
 
-        if (Objects.isNull(headers)) {
-            // todo get from a ThreadLocal or MDC
-            headers = null/*something like MDC.get("headers"*/;
-        }
+        var headersProvider = new DetailedHeadersProvider(propertyProvider, headersKvp);
+        var headers = headersProvider.getHeaders();
         builder.headers(headers);
+
+        var informationSB = new StringBuilder(messageLifecycle.getPrefix());
+        if (StringUtils.isNoneBlank(automatedSystem)) {
+            informationSB
+                .append(": ")
+                .append(automatedSystem);
+        }
+        builder.information(informationSB.toString());
+        builder.rqUID(MDC.get(LoggingConstants.RQ_UID));
+        if (StringUtils.isBlank(opName)) {
+            opName = MDC.get(LoggingConstants.OP_NAME);
+        }
+        builder.operationName(opName);
 
         // do masking only after `dataMasker` is initialized based on kvp
         if (Objects.nonNull(messageBody)) {
@@ -240,20 +258,8 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
                 addWarn("could not mask messageBody", e);
                 messageBody = e.getMessage();
             }
-            builder.messageBody(messageBody);
+            builder.message(messageBody);
         }
-        builder.rqUID(MDC.get("rqUID")); // todo get from kvp or headers if present, if not, get from MDC
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private Map<String, String> getHeaders(KeyValuePair kvp) {
-        Map<String, String> headers;
-        if (Objects.requireNonNull(kvp.value) instanceof Map mapHeaders) {
-            headers = (Map<String, String>) mapHeaders;
-        } else {
-            headers = null;
-        }
-        return headers;
     }
 
     private DataMasker getMasker(KeyValuePair kvp, DataMasker defaultDataMasker) {
@@ -276,6 +282,28 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
             return nopMasker;
         }
         return dataMasker;
+    }
+
+    private MessageLifecycle getMessageLifecycle(KeyValuePair kvp) {
+        if (kvp.value instanceof MessageLifecycle messageLifecycle) {
+            return messageLifecycle;
+        }
+        if (kvp.value instanceof String messageLifecycleStr) {
+            try {
+                return MessageLifecycle.valueOf(messageLifecycleStr.toUpperCase());
+            } catch (Exception e) {
+                /* do nothing. will default to MessageLifecycle.ACTION*/
+            }
+        }
+        return MessageLifecycle.ACTION;
+    }
+
+    private String getStatus(KeyValuePair kvp, ILoggingEvent event) {
+        var status = getString(kvp);
+        if (StringUtils.isBlank(status)) {
+            status = event.getLevel().equals(Level.ERROR) ? LoggingConstants.STATUS_ERROR : LoggingConstants.STATUS_SUCCESS;
+        }
+        return status;
     }
 
     private String getString(KeyValuePair kvp) {

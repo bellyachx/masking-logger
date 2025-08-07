@@ -9,10 +9,22 @@ target/
 *.iml
 *.ipr
 
+### Eclipse ###
+.settings/
+.project
+.classpath
+.factorypath
+!**/.project
+!**/.classpath
+!**/.factorypath
+!**/.settings/
+
 ### VS Code ###
 .vscode/
 
 ### Mac OS ###
 .DS_Store
 
+logs/
+!**/logs/
 *.log

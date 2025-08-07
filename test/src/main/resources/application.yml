@@ -1,9 +1,16 @@
-logging:
+wlogger:
+  request:
+    enabled: true
   mask:
     enabled: true
     fields:
       - /string
-      - /testData/string
+      - /testData/integer
       - /testDataList/#/bigDecimal
       - /testDataList/#/testDataList/#/integer
       - /stringList/#/
+      - /password
+
+spring:
+  application:
+    name: test

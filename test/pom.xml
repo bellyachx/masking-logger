@@ -4,7 +4,7 @@
     <parent>
         <groupId>me.maxhub.logger</groupId>
         <artifactId>masking-logger</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>test</artifactId>
@@ -24,13 +24,8 @@
         </dependency>
         <dependency>
             <groupId>me.maxhub.logger</groupId>
-            <artifactId>masking-logger-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>me.maxhub.logger</groupId>
-            <artifactId>masking-logger-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>masking-logger-spring-boot-starter</artifactId>
+            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

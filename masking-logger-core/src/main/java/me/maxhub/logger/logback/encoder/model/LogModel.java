@@ -1,5 +1,6 @@
 package me.maxhub.logger.logback.encoder.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
@@ -16,9 +17,12 @@ public class LogModel {
     private String serviceReceiver;
     private String operationName;
     @JsonProperty("event_timestamp") // snake_case wtf?
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
     private Instant timestamp;
-    private String message;
-    private Object messageBody;
+    private Object message;
+//    private Object messageBody;
+    private String logMessage;
+    private String logLevel;
     private String status;
     private Map<String, String> headers; // todo use List<String> for map value?
     private String information;

@@ -4,7 +4,7 @@
 
     <groupId>me.maxhub.logger</groupId>
     <artifactId>masking-logger</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>pom</packaging>
 
     <name>masking-logger</name>
@@ -12,6 +12,9 @@
         <module>masking-logger-core</module>
         <module>test</module>
         <module>masking-logger-api</module>
+        <module>masking-logger-autoconfig</module>
+        <module>masking-logger-spring</module>
+        <module>masking-logger-spring-boot-starter</module>
     </modules>
 
     <properties>
@@ -35,6 +38,28 @@
                 <version>3.1.11</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- Logger -->
+            <dependency>
+                <groupId>me.maxhub.logger</groupId>
+                <artifactId>masking-logger-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>me.maxhub.logger</groupId>
+                <artifactId>masking-logger-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>me.maxhub.logger</groupId>
+                <artifactId>masking-logger-autoconfig</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>me.maxhub.logger</groupId>
+                <artifactId>masking-logger-spring</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

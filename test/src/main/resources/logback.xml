@@ -1,41 +1,17 @@
 <configuration>
     <include resource="masking-logback.xml"/>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %X{x-header-to-log:-} %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
     <property name="ENABLE_MASKER" value="true"/>
     <property name="DEFAULT_MASKER" value="json"/>
-<!--    <property name="PROPS_PROVIDER" value="spring"/>-->
-
-    <appender level="info" name="customRollingFile" class="RollingFileAppender">
-        <filter class="ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-        <filter class="LoggerNameFilter">
-            <include>me.maxhub</include>
-            <include>bober</include>
-            <ignore>me.maxhub.logger.SpringBootApp</ignore>
-            <ignore>me.maxhub.logger.encoder</ignore>
-            <ignore>me.maxhub.logger.logback</ignore>
-            <ignore>me.maxhub.logger.mask</ignore>
-            <ignore>me.maxhub.logger.properties</ignore>
-            <ignore>me.maxhub.logger.spring</ignore>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>log-%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>3GB</totalSizeCap>
-        </rollingPolicy>
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>3MB</maxFileSize>
-        </triggeringPolicy>
-        <encoder class="MaskingJsonEncoder">
-            <enableMasker>${ENABLE_MASKER:-true}</enableMasker>
-            <defaultMasker>${DEFAULT_MASKER:-json}</defaultMasker>
-            <propertiesProvider>${PROPS_PROVIDER:-other}</propertiesProvider>
-        </encoder>
-    </appender>
+    <property name="PROPS_PROVIDER" value="spring"/>
+    <property name="LOGGER_TO_INCLUDE" value="me.maxhub.include1, me.maxhub"/>
+    <property name="LOGGER_TO_IGNORE" value="me.maxhub.ignore1"/>
 
     <root level="debug">
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="customRollingFile"/>
-<!--        <appender-ref ref="rollingFile"/>-->
+        <appender-ref ref="rollingFile"/>
     </root>
 </configuration>

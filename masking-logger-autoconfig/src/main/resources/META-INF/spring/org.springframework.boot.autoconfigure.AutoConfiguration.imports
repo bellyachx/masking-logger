@@ -1,0 +1,4 @@
+me.maxhub.logger.MaskingLoggerAutoconfiguration
+me.maxhub.logger.RequestMappingInterceptorAutoconfiguration
+me.maxhub.logger.LogAroundAutoconfiguration
+me.maxhub.logger.MdcLoggerAutoconfiguration

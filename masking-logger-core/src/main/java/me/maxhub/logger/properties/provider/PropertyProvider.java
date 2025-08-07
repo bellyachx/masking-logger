@@ -1,7 +1,9 @@
-package me.maxhub.logger.properties;
+package me.maxhub.logger.properties.provider;
 
-import me.maxhub.logger.properties.impl.FilePropertyProvider;
-import me.maxhub.logger.properties.impl.SpringPropertyProvider;
+import me.maxhub.logger.properties.HeaderFilterProps;
+import me.maxhub.logger.properties.LoggingProps;
+import me.maxhub.logger.properties.provider.impl.FilePropertyProvider;
+import me.maxhub.logger.properties.provider.impl.SpringPropertyProvider;
 
 /**
  * A property provider that loads properties for logging.
@@ -15,4 +17,6 @@ public interface PropertyProvider {
      * @return a {@link LoggingProps} containing logging properties.
      */
     LoggingProps getProperties();
+
+    HeaderFilterProps getHeaderFilterProps();
 }

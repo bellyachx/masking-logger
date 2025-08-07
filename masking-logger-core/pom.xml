@@ -4,7 +4,7 @@
     <parent>
         <groupId>me.maxhub.logger</groupId>
         <artifactId>masking-logger</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <groupId>me.maxhub.logger</groupId>
@@ -55,6 +55,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

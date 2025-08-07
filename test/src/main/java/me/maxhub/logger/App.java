@@ -1,8 +1,8 @@
 package me.maxhub.logger;
 
-import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
 import me.maxhub.logger.api.WLogger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.slf4j.event.Level;
 
@@ -14,24 +14,22 @@ import java.util.UUID;
 
 @Slf4j
 public class App {
-//    private static final org.slf4j.Logger log = LoggerFactory.getLogger("bober");
 
     public static void main(String[] args) {
-        if (log instanceof Logger logbackLogger) {
-//            logbackLogger.setLevel(ch.qos.logback.classic.Level.TRACE);
-        }
+        // if (log instanceof Logger logbackLogger) {
+        //            logbackLogger.setLevel(ch.qos.logback.classic.Level.TRACE);
+        // }
         MDC.put("rqUID", UUID.randomUUID().toString());
         var levels = List.of(Level.values());
         var testData = buildTestData();
         var testData1 = buildTestData();
         var testData2 = buildTestData();
-        testData1.setTestDataList(List.of(testData2, testData2));
+        testData1.setTestDataList(List.of(testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2));
         testData.setTestDataList(List.of(testData1, testData1));
         for (Level level : levels) {
             WLogger.level(level)
                 .message("Hello WLogger [{}]", level.name())
                 .messageBody(testData)
-                .information("test")
                 .operationName("test")
                 .status("test")
                 .log();
@@ -42,12 +40,17 @@ public class App {
 //                .log("Test log message with argument [{}]");
         }
 
-        WLogger.info("status", "operation", "information", buildTestRecord(), "Message [{}] [{}]", "YEEEEEYEYEYEYEYEY", Instant.now());
+        WLogger.info("opName", buildTestRecord(), "Message [{}] [{}]", "TEST", Instant.now());
 
         WLogger.error().message("yes yes yes [{}]", "no").log();
 
-        log.atError()
-            .log();
+        log.info("Test log message with argument [{}]", "Test");
+        var include1 = LoggerFactory.getLogger("me.maxhub.include1");
+        include1.info("include1");
+        var ignore1 = LoggerFactory.getLogger("me.maxhub.ignore1");
+        ignore1.info("ignore1");
+        var neutral = LoggerFactory.getLogger("me.maxhub.neutral");
+        neutral.info("neutral");
     }
 
     private static TestData buildTestData() {

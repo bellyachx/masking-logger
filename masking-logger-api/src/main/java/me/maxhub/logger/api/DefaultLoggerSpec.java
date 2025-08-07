@@ -1,5 +1,8 @@
 package me.maxhub.logger.api;
 
+import me.maxhub.logger.logback.encoder.enums.BodyType;
+import me.maxhub.logger.util.LoggingConstants;
+import me.maxhub.logger.util.MessageLifecycle;
 import org.slf4j.spi.LoggingEventBuilder;
 
 import java.util.Map;
@@ -17,44 +20,44 @@ class DefaultLoggerSpec implements KVPLoggerSpec, MessageLoggerSpec {
     protected Object[] args;
 
     @Override
-    public KVPLoggerSpec rqUID(String rqUID) {
-        loggingEventBuilder.addKeyValue("rqUID", rqUID);
-        return null;
-    }
-
-    @Override
     public KVPLoggerSpec messageBody(Object messageBody) {
-        loggingEventBuilder.addKeyValue("jsonObject", messageBody);
+        loggingEventBuilder.addKeyValue(LoggingConstants.MESSAGE_BODY, messageBody);
         return this;
     }
 
     @Override
     public KVPLoggerSpec headers(Map<String, String> headers) {
-        loggingEventBuilder.addKeyValue("headers", headers);
-        return this;
-    }
-
-    @Override
-    public KVPLoggerSpec information(String information) {
-        loggingEventBuilder.addKeyValue("information", information);
+        loggingEventBuilder.addKeyValue(LoggingConstants.HEADERS, headers);
         return this;
     }
 
     @Override
     public KVPLoggerSpec operationName(String operationName) {
-        loggingEventBuilder.addKeyValue("operation", operationName);
+        loggingEventBuilder.addKeyValue(LoggingConstants.OP_NAME, operationName);
         return this;
     }
 
     @Override
     public KVPLoggerSpec status(String status) {
-        loggingEventBuilder.addKeyValue("status", status);
+        loggingEventBuilder.addKeyValue(LoggingConstants.STATUS, status);
         return this;
     }
 
     @Override
-    public KVPLoggerSpec masker(String masker) {
-        loggingEventBuilder.addKeyValue("masker", masker);
+    public KVPLoggerSpec bodyType(BodyType bodyType) {
+        loggingEventBuilder.addKeyValue(LoggingConstants.BODY_TYPE, bodyType);
+        return this;
+    }
+
+    @Override
+    public KVPLoggerSpec messageLifecycle(MessageLifecycle messageLifecycle) {
+        loggingEventBuilder.addKeyValue(LoggingConstants.MSG_LIFECYCLE, messageLifecycle);
+        return this;
+    }
+
+    @Override
+    public KVPLoggerSpec automatedSystem(String serviceReceiver) {
+        loggingEventBuilder.addKeyValue(LoggingConstants.AS, serviceReceiver);
         return this;
     }
 
@@ -68,6 +71,11 @@ class DefaultLoggerSpec implements KVPLoggerSpec, MessageLoggerSpec {
     public KVPLoggerSpec message(String format, Object... args) {
         this.format = format;
         this.args = args;
+        return this;
+    }
+
+    @Override
+    public KVPLoggerSpec message() {
         return this;
     }
 

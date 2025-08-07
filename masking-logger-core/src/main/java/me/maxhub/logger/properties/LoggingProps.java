@@ -11,8 +11,6 @@ import java.util.Set;
  * Logging properties.
  */
 @Data
-@Configuration
-@ConfigurationProperties("logging.mask")
 public class LoggingProps {
     Boolean enabled;
     Set<String> fields;

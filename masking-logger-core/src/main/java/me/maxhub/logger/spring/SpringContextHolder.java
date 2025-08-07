@@ -1,19 +1,26 @@
 package me.maxhub.logger.spring;
 
+import lombok.Getter;
+import lombok.Setter;
+import me.maxhub.logger.properties.HeaderFilterProps;
+import me.maxhub.logger.properties.LoggingProps;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-@Component
-public class SpringContextHolder implements ApplicationContextAware {
+public class SpringContextHolder {
 
+    @Setter
     private static ApplicationContext ctx;
+    @Getter
+    @Setter
+    private static LoggingProps loggingProps;
+    @Getter
+    @Setter
+    private static HeaderFilterProps headerFilterProps;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        ctx = applicationContext;
-    }
+    private SpringContextHolder() {}
 
     public static Environment getEnv() {
         return ctx.getEnvironment();
