@@ -1,24 +1,10 @@
 # Masking Logger
 A flexible and configurable logging solution that provides data masking capabilities for sensitive information in application logs.
-## Features
-- **JSON Logging Format**: Structured logging with JSON format for better log analysis
-- **Spring Boot Integration**: Seamless integration with Spring Boot applications
-- **Custom Filters**: Configurable filtering based on logger names
-- **Flexible Configuration**: Configure masking patterns via properties files
-- **Index-Based Rolling Policy**: Custom rolling policy for log file management
-
-## Project Structure
-The project is organized into several modules:
-- : Core API interfaces and contracts **masking-logger-api**
-- : Auto-configuration for standard Java applications **masking-logger-autoconfig**
-- : Main implementation of the masking functionality **masking-logger-core**
-- : Example application demonstrating usage **masking-logger-example**
-- : Spring Boot starter for easy integration **masking-logger-spring-boot-starter**
 
 ## Getting Started
 ### Prerequisites
 - Java 21 or higher
-- Maven 3.6+ (for building)
+- Maven 3.6+
 
 ### Installation
 Add the dependency to your Maven project:
@@ -61,7 +47,7 @@ wlogger.mask.fields=\
   /stringList/#/
 ```
 
-Or through `application.yml/properties` if `${PROPS_PROVIDER} == spring` in `logback.xml`
+Or via `application.yml/properties` (if `${PROPS_PROVIDER} == spring` in `logback.xml`):
 ```yml
 wlogger:
   request:
@@ -82,9 +68,6 @@ wlogger:
 ## Usage Examples
 ### Basic Logging with Masking
 ```java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Example {
     private static final Logger logger = LoggerFactory.getLogger(Example.class);
     
@@ -95,10 +78,6 @@ public class Example {
 ```
 ### Using WLogger utility class
 ```java
-import me.maxhub.logger.LoggingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class ContextExample {
     
     public void processRequest(String requestId) {
@@ -113,11 +92,4 @@ public class ContextExample {
     }
 }
 ```
-See other examples in `masking-logger-example` module.
-## Core Components
-### MaskingJsonEncoder
-The is the central component responsible for formatting log events as JSON and applying masking rules to sensitive data before writing logs. `MaskingJsonEncoder`
-### LoggerNameFilter
-Allows filtering log events based on logger names, providing a way to control which loggers have masking applied.
-### IndexBasedRollingPolicy
-Custom implementation of a rolling policy that manages log files based on index numbering rather than dates, useful for specific log rotation requirements.
+See other examples in [masking-logger-example](masking-logger-example) module.
