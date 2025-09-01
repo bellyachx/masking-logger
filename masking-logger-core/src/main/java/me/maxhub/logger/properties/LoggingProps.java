@@ -5,6 +5,7 @@ import me.maxhub.logger.mask.enums.MaskerType;
 import me.maxhub.logger.mask.enums.MaskerVersion;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -18,7 +19,7 @@ public class LoggingProps {
     Set<String> fields;
 
     public Set<String> getFields() {
-        if (fields == null) {
+        if (Objects.isNull(fields)) {
             fields = new HashSet<>();
         }
         return fields;

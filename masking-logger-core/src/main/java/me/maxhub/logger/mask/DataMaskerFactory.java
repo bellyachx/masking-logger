@@ -11,6 +11,7 @@ import me.maxhub.logger.properties.provider.PropertyProvider;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class DataMaskerFactory {
 
@@ -37,7 +38,7 @@ public class DataMaskerFactory {
         }
 
         var version = loggingProps.getMaskerVersion();
-        if (bodyType != null) {
+        if (Objects.nonNull(bodyType)) {
             if (bodyType == BodyType.JSON) {
                 return getJsonMasker(version);
             }

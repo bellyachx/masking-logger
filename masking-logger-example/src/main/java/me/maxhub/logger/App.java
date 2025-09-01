@@ -16,9 +16,6 @@ import java.util.UUID;
 public class App {
 
     public static void main(String[] args) {
-        // if (log instanceof Logger logbackLogger) {
-        //            logbackLogger.setLevel(ch.qos.logback.classic.Level.TRACE);
-        // }
         MDC.put("rqUID", UUID.randomUUID().toString());
         var levels = List.of(Level.values());
         var testData = TestData.buildTestData();
@@ -33,11 +30,6 @@ public class App {
                 .operationName("test")
                 .status("test")
                 .log();
-//            log.atLevel(level)
-//                .addKeyValue("jsonObject", testData)
-//                .addKeyValue("action", level.name())
-//                .addArgument(level.name())
-//                .log("Test log message with argument [{}]");
         }
 
         WLogger.info("opName", TestRecord.buildTestRecord(), "Message [{}] [{}]", "TEST", Instant.now());

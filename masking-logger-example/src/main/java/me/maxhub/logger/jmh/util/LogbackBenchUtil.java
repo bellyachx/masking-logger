@@ -9,6 +9,8 @@ import me.maxhub.logger.logback.encoder.MaskingJsonEncoder;
 import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
+import java.util.Objects;
+import java.util.Optional;
 
 public final class LogbackBenchUtil {
     public static LoggerContext reconfigureWithEncoder(MaskingJsonEncoder encoder, OutputStream out) {
@@ -27,7 +29,7 @@ public final class LogbackBenchUtil {
         app.setName("BENCH");
         app.setEncoder(encoder);
         app.setImmediateFlush(false);
-        app.setOutputStream(out != null ? out : new NoopOutputStream());
+        app.setOutputStream(Optional.ofNullable(out).orElse(new NoopOutputStream()));
         app.start();
 
         Logger root = ctx.getLogger(Logger.ROOT_LOGGER_NAME);

@@ -1,5 +1,6 @@
 package me.maxhub.logger.properties.provider.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import me.maxhub.logger.mask.enums.MaskerType;
 import me.maxhub.logger.mask.enums.MaskerVersion;
 import me.maxhub.logger.properties.HeaderFilterProps;
@@ -7,14 +8,14 @@ import me.maxhub.logger.properties.LoggingProps;
 import me.maxhub.logger.properties.provider.PropertyProvider;
 
 import java.io.FileInputStream;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
  * A {@link PropertyProvider} implementation that loads logging properties from a
  * {@code .properties} file
  */
+@Slf4j
 public class FilePropertyProvider implements PropertyProvider {
 
     private LoggingProps cachedLoggingProps;
@@ -22,32 +23,33 @@ public class FilePropertyProvider implements PropertyProvider {
 
     @Override
     public LoggingProps getLoggingProps() {
-        if (cachedLoggingProps != null) {
+        if (Objects.nonNull(cachedLoggingProps)) {
             return cachedLoggingProps;
         }
         var res = FilePropertyProvider.class.getResource("/wlogger.properties");
         var loggingProps = new LoggingProps();
         try {
-            assert res != null;
+            assert Objects.nonNull(res);
             try (var is = new FileInputStream(res.getFile())) {
                 Properties props = new Properties();
                 props.load(is);
                 props.forEach((k, v) -> {
-                    if (k.equals("wlogger.mask.enabled")) {
-                        loggingProps.setEnabled(Boolean.parseBoolean(v.toString()));
-                    } else if (k.equals("wlogger.mask.fields")) {
-                        for (String path : ((String) v).split(",")) {
-                            loggingProps.getFields().add(path.trim());
+                    switch ((String) k) {
+                        case "wlogger.mask.enabled" -> loggingProps.setEnabled(Boolean.parseBoolean(v.toString()));
+                        case "wlogger.mask.fields" -> {
+                            for (String path : ((String) v).split(",")) {
+                                loggingProps.getFields().add(path.trim());
+                            }
                         }
-                    } else if (k.equals("wlogger.mask.default-masker")) {
-                        loggingProps.setDefaultMasker(MaskerType.valueOf(v.toString().toUpperCase()));
-                    } else if (k.equals("wlogger.mask.masker-version")) {
-                        loggingProps.setMaskerVersion(MaskerVersion.valueOf(v.toString().toUpperCase()));
+                        case "wlogger.mask.default-masker" ->
+                            loggingProps.setDefaultMasker(MaskerType.valueOf(v.toString().toUpperCase()));
+                        case "wlogger.mask.masker-version" ->
+                            loggingProps.setMaskerVersion(MaskerVersion.valueOf(v.toString().toUpperCase()));
                     }
                 });
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error occurred when parsing `wlogger.properties`", e);
         }
         cachedLoggingProps = loggingProps;
         return loggingProps;
@@ -55,39 +57,38 @@ public class FilePropertyProvider implements PropertyProvider {
 
     @Override
     public HeaderFilterProps getHeaderFilterProps() {
-        if (cachedHeaderFilterProps != null) {
+        if (Objects.nonNull(cachedHeaderFilterProps)) {
             return cachedHeaderFilterProps;
         }
         var res = FilePropertyProvider.class.getResource("/wlogger.properties");
-        var enabled = false;
-        var include = new HashSet<String>();
-        var exclude = new HashSet<String>();
         var headerFilterProps = new HeaderFilterProps();
         try {
-            assert res != null;
+            assert Objects.nonNull(res);
             try (var is = new FileInputStream(res.getFile())) {
                 Properties props = new Properties();
                 props.load(is);
-                for (Map.Entry<Object, Object> entry : props.entrySet()) {
-                    Object k = entry.getKey();
-                    Object v = entry.getValue();
-                    if (k.equals("wlogger.headers.enabled")) {
-                        enabled = Boolean.parseBoolean(v.toString());
-                    } else if (k.equals("wlogger.headers.include")) {
-                        for (String path : ((String) v).split(",")) {
-                            include.add(path.trim());
+                props.forEach((k, v) -> {
+                    switch ((String) k) {
+                        case "wlogger.headers.enabled" ->
+                            headerFilterProps.setEnabled(Boolean.parseBoolean(v.toString()));
+                        case "wlogger.headers.include" -> {
+                            for (String path : ((String) v).split(",")) {
+                                headerFilterProps.getInclude().add(path.trim());
+                            }
                         }
-                    } else if (k.equals("wlogger.headers.exclude")) {
-                        for (String path : ((String) v).split(",")) {
-                            exclude.add(path.trim());
+                        case "wlogger.headers.exclude" -> {
+                            for (String path : ((String) v).split(",")) {
+                                headerFilterProps.getExclude().add(path.trim());
+                            }
                         }
                     }
-                }
+                });
+                headerFilterProps.init();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error occurred when parsing `wlogger.properties`", e);
         }
-        cachedHeaderFilterProps = new HeaderFilterProps(enabled, include, exclude);
+        cachedHeaderFilterProps = headerFilterProps;
         return headerFilterProps;
     }
 }

@@ -6,6 +6,7 @@ import me.maxhub.logger.util.MessageLifecycle;
 import org.slf4j.spi.LoggingEventBuilder;
 
 import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 class DefaultLoggerSpec implements KVPLoggerSpec, MessageLoggerSpec {
@@ -81,11 +82,11 @@ class DefaultLoggerSpec implements KVPLoggerSpec, MessageLoggerSpec {
 
     @Override
     public void log() {
-        if (format == null) {
+        if (Objects.isNull(format)) {
             loggingEventBuilder.log();
         }
         Object[] currentArgs = args;
-        if (currentArgs == null) {
+        if (Objects.isNull(currentArgs)) {
             loggingEventBuilder.log(format);
         } else {
             loggingEventBuilder.log(format, args);

@@ -4,7 +4,7 @@
     <parent>
         <groupId>me.maxhub.logger</groupId>
         <artifactId>masking-logger</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
     </parent>
 
     <groupId>me.maxhub.logger</groupId>
@@ -62,9 +62,8 @@
             <artifactId>jspecify</artifactId>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>me.maxhub.logger</groupId>
+            <artifactId>masking-logger-annotations</artifactId>
         </dependency>
     </dependencies>
 

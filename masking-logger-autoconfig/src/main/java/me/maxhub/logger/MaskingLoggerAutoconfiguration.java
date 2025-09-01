@@ -37,9 +37,9 @@ public class MaskingLoggerAutoconfiguration {
 
     @Bean
     HeaderFilterProps headerFilterProps(Environment env) {
-        var enabled = Binder.get(env).bind("wlogger.headers.enabled", Boolean.class).orElse(false);
-        var include = Binder.get(env).bind("wlogger.headers.include", Bindable.setOf(String.class)).orElse(Collections.emptySet());
-        var exclude = Binder.get(env).bind("wlogger.headers.exclude", Bindable.setOf(String.class)).orElse(Collections.emptySet());
-        return new HeaderFilterProps(enabled, include, exclude);
+        var headerFilterProps = Binder.get(env).bind("wlogger.headers", HeaderFilterProps.class)
+            .orElse(new HeaderFilterProps());
+        headerFilterProps.init();
+        return headerFilterProps;
     }
 }

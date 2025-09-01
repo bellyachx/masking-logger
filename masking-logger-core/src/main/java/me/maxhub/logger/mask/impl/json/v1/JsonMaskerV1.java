@@ -7,6 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.maxhub.logger.mask.DataMasker;
 import me.maxhub.logger.mask.MaskSupport;
 import me.maxhub.logger.properties.provider.PropertyProvider;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 
 public class JsonMaskerV1 implements DataMasker {
 
@@ -69,16 +72,16 @@ public class JsonMaskerV1 implements DataMasker {
             }
 
             var targetParentNode = root.at(parentPath);
-            if (targetParentNode != null && targetParentNode.isObject()) {
+            if (Objects.nonNull(targetParentNode) && targetParentNode.isObject()) {
                 var parentObject = (ObjectNode) targetParentNode;
                 var targetValue = parentObject.get(fieldName);
 
-                if (targetValue != null && (targetValue.isTextual() || targetValue.isNumber() || targetValue.isBoolean())) {
+                if (Objects.nonNull(targetValue) && (targetValue.isTextual() || targetValue.isNumber() || targetValue.isBoolean())) {
                     var maskedValue = maskString(targetValue.asText());
                     parentObject.put(fieldName, maskedValue);
                 }
 
-                if (targetValue != null && (targetValue.isArray() || targetValue.isObject())) {
+                if (Objects.nonNull(targetValue) && (targetValue.isArray() || targetValue.isObject())) {
                     var maskedValue = maskString(targetValue.toString());
                     parentObject.put(fieldName, maskedValue);
                 }
@@ -87,7 +90,7 @@ public class JsonMaskerV1 implements DataMasker {
             return root;
         } catch (Throwable t) {
             var stringBuilder = new StringBuilder("Cannot mask data for path [%s]".formatted(path));
-            if (path == null || path.isBlank() || path.charAt(0) != '/') {
+            if (StringUtils.isBlank(path) || path.charAt(0) != '/') {
                 stringBuilder.append("; path should start with '/'");
             }
             throw new RuntimeException(stringBuilder.toString(), t);
@@ -95,7 +98,7 @@ public class JsonMaskerV1 implements DataMasker {
     }
 
     private String maskString(String text) {
-        if (text == null || text.isBlank()) {
+        if (StringUtils.isBlank(text)) {
             return text;
         }
 

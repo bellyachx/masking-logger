@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.util.Objects;
 
 final class MaskingParameterSerializer extends StdSerializer<MaskedParameter> {
 
@@ -14,7 +15,7 @@ final class MaskingParameterSerializer extends StdSerializer<MaskedParameter> {
 
     @Override
     public void serialize(MaskedParameter value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        if (value == null) {
+        if (Objects.isNull(value)) {
             provider.defaultSerializeNull(gen);
             return;
         }

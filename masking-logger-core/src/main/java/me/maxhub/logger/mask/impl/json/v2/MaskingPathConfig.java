@@ -2,6 +2,7 @@ package me.maxhub.logger.mask.impl.json.v2;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import me.maxhub.logger.properties.provider.PropertyProvider;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -17,8 +18,11 @@ final class MaskingPathConfig implements Serializable {
 
     private final transient PropertyProvider propertyProvider;
 
-    private Set<JsonPointer> exactPointers;
-    private List<Pattern> wildcardPatterns;
+    private boolean initialized = false;
+
+    private final Set<String> rawPaths = new HashSet<>();
+    private final Set<JsonPointer> exactPointers = new HashSet<>();
+    private final Set<Pattern> wildcardPatterns = new HashSet<>();
 
     public MaskingPathConfig(PropertyProvider propertyProvider) {
         this.propertyProvider = propertyProvider;
@@ -29,7 +33,7 @@ final class MaskingPathConfig implements Serializable {
     }
 
     private static String normalize(String s) {
-        if (s == null || s.isBlank()) {
+        if (StringUtils.isBlank(s)) {
             throw new IllegalArgumentException("Empty mask path");
         }
         var p = s.trim();
@@ -76,26 +80,41 @@ final class MaskingPathConfig implements Serializable {
         return false;
     }
 
+    public void add(String path) {
+        var normalized = normalize(path);
+        if (rawPaths.contains(normalized)) {
+            return;
+        }
+        rawPaths.add(normalized);
+        if (normalized.contains("#")) {
+            wildcardPatterns.add(compileWildcard(normalized));
+        } else {
+            exactPointers.add(JsonPointer.compile(normalized));
+        }
+    }
+
     private boolean init() {
+        if (initialized) {
+            return true;
+        }
+
         if (exactPointers != null && wildcardPatterns != null) {
             return true;
         }
 
-        if (propertyProvider.getLoggingProps() != null) {
+        if (Objects.nonNull(propertyProvider.getLoggingProps())) {
             var paths = propertyProvider.getLoggingProps().getFields();
-            var exact = new HashSet<JsonPointer>();
-            var wildcards = new ArrayList<Pattern>();
 
             for (var path : paths) {
                 var normalized = normalize(path);
+                rawPaths.add(normalized);
                 if (normalized.contains("#")) {
-                    wildcards.add(compileWildcard(normalized));
+                    wildcardPatterns.add(compileWildcard(normalized));
                 } else {
-                    exact.add(JsonPointer.compile(normalized));
+                    exactPointers.add(JsonPointer.compile(normalized));
                 }
             }
-            exactPointers = exact;
-            wildcardPatterns = wildcards;
+            initialized = true;
             return true;
         }
 

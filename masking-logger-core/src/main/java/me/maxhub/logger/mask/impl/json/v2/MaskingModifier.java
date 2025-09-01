@@ -20,12 +20,15 @@ final class MaskingModifier extends BeanSerializerModifier {
     @Override
     public JsonSerializer<?> modifySerializer(SerializationConfig config, BeanDescription beanDesc, JsonSerializer<?> serializer) {
         if (isMaskable(serializer)) {
+            JsonSerializer<?> delegate;
             if (serializer instanceof BooleanSerializer) {
-                return new MaskingBooleanSerializer(cast(serializer), maskingPathConfig, null);
+                delegate = new MaskingBooleanSerializer(cast(serializer), maskingPathConfig, null);
+            } else {
+                delegate = new MaskingSerializer(cast(serializer), maskingPathConfig);
             }
-            return new MaskingSerializer(cast(serializer), maskingPathConfig, null);
+            return new BaseMaskingSerializer<>(delegate, maskingPathConfig);
         }
-        return serializer;
+        return new BaseMaskingSerializer<>(serializer, maskingPathConfig);
     }
 
     @SuppressWarnings("unchecked")

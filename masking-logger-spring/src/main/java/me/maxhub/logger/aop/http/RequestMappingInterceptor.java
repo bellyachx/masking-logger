@@ -1,9 +1,9 @@
 package me.maxhub.logger.aop.http;
 
 import me.maxhub.logger.LoggingContext;
-import me.maxhub.logger.aop.LogIgnore;
+import me.maxhub.logger.LogIgnore;
 import me.maxhub.logger.api.WLogger;
-import me.maxhub.logger.mask.Mask;
+import me.maxhub.logger.Mask;
 import me.maxhub.logger.mask.impl.json.v2.MaskedParameter;
 import me.maxhub.logger.util.LoggingConstants;
 import me.maxhub.logger.util.MessageLifecycle;

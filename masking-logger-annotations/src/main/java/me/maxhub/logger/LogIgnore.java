@@ -1,4 +1,4 @@
-package me.maxhub.logger.aop;
+package me.maxhub.logger;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

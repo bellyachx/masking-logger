@@ -3,7 +3,7 @@ package me.maxhub.logger.mask.impl.json.v2;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import me.maxhub.logger.mask.Mask;
+import me.maxhub.logger.Mask;
 import me.maxhub.logger.mask.MaskSupport;
 
 import java.io.IOException;
@@ -14,9 +14,15 @@ final class MaskingSerializer extends AbstractMaskingSerializer<Object> {
     private final boolean shouldMask;
 
     MaskingSerializer(JsonSerializer<Object> delegate,
-                             MaskingPathConfig maskingPathConfig,
-                             Mask maskAnnotation) {
+                      MaskingPathConfig maskingPathConfig,
+                      Mask maskAnnotation) {
         super(delegate, maskingPathConfig, maskAnnotation);
+        this.shouldMask = false;
+    }
+
+    MaskingSerializer(JsonSerializer<Object> delegate,
+                      MaskingPathConfig cfg) {
+        super(delegate, cfg, null);
         this.shouldMask = false;
     }
 

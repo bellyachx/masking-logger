@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Data;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Data
 @JsonPropertyOrder({"body", "otherMethodArguments"})
@@ -17,7 +18,7 @@ public class MessageBody {
 
     public MessageBody(MethodContext methodContext) {
         this.body = methodContext.getRequestBody();
-        if (methodContext.getArguments() != null && !methodContext.getArguments().isEmpty()) {
+        if (Objects.nonNull(methodContext.getArguments()) && !methodContext.getArguments().isEmpty()) {
             this.otherMethodArguments = methodContext.getArguments();
         }
     }

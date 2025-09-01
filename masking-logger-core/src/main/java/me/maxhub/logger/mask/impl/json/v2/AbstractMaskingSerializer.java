@@ -1,13 +1,12 @@
 package me.maxhub.logger.mask.impl.json.v2;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.ContextualSerializer;
-import me.maxhub.logger.mask.Mask;
+import me.maxhub.logger.Mask;
 
-abstract class AbstractMaskingSerializer<T> extends JsonSerializer<T> implements ContextualSerializer {
+import java.util.Objects;
+
+abstract class AbstractMaskingSerializer<T> extends JsonSerializer<T> {
 
     protected final JsonSerializer<T> delegate;
     protected final MaskingPathConfig cfg;
@@ -21,17 +20,11 @@ abstract class AbstractMaskingSerializer<T> extends JsonSerializer<T> implements
         this.maskAnnotation = maskAnnotation;
     }
 
-    @Override
-    public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) {
-        var maskAnn = MaskAnnotationIntrospector.findMaskAnnotation(property);
-        return createMaskedSerializer(maskAnn);
-    }
-
     protected abstract JsonSerializer<T> createMaskedSerializer(Mask maskAnnotation);
 
     protected boolean matches(JsonGenerator gen) {
-        var matchesPath = (cfg != null) && cfg.matches(gen.getOutputContext().pathAsPointer());
+        var matchesPath = Objects.nonNull(cfg) && cfg.matches(gen.getOutputContext().pathAsPointer());
 
-        return matchesPath || (maskAnnotation != null);
+        return matchesPath || Objects.nonNull(maskAnnotation);
     }
 }

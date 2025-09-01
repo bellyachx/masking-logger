@@ -8,6 +8,8 @@ import me.maxhub.logger.logback.encoder.enums.BodyType;
 import me.maxhub.logger.mask.enums.MaskerType;
 import me.maxhub.logger.properties.provider.PropertyProvider;
 
+import java.util.Objects;
+
 public class MessageEncoderFactory {
 
     private final PropertyProvider propertyProvider;
@@ -42,12 +44,12 @@ public class MessageEncoderFactory {
     }
 
     private boolean init() {
-        if (defaultEncoder != null) {
+        if (Objects.nonNull(defaultEncoder)) {
             return true;
         }
 
         var loggingProps = propertyProvider.getLoggingProps();
-        if (loggingProps != null) {
+        if (Objects.nonNull(loggingProps)) {
             if (loggingProps.getDefaultMasker() == MaskerType.XML) {
                 this.defaultEncoder = this.xmlEncoder;
             } else {

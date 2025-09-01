@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 import static ch.qos.logback.core.CoreConstants.CODES_URL;
 
@@ -34,7 +35,7 @@ public class IndexBasedRollingPolicy extends RollingPolicyBase {
     public void start() {
         util.setContext(this.context);
 
-        if (fileNamePatternStr != null) {
+        if (Objects.nonNull(fileNamePatternStr)) {
             fileNamePattern = new FileNamePattern(fileNamePatternStr, this.context);
             determineCompressionMode();
         } else {

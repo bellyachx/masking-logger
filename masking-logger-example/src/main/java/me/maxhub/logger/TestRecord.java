@@ -1,7 +1,7 @@
 package me.maxhub.logger;
 
 import lombok.Builder;
-import me.maxhub.logger.mask.Mask;
+import me.maxhub.logger.Mask;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,10 +23,6 @@ public record TestRecord(
     List<@Mask String> stringList,
     TestRecord testRecord
 ) {
-//    TestRecord() {
-//        this(null, null, null, null, null);
-//    }
-
     public static TestRecord buildTestRecord() {
         return TestRecord.builder()
             .string("1231231231231231231231231231231231231231")

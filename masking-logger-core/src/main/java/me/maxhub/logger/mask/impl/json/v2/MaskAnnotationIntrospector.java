@@ -1,24 +1,25 @@
 package me.maxhub.logger.mask.impl.json.v2;
 
 import com.fasterxml.jackson.databind.BeanProperty;
-import me.maxhub.logger.mask.Mask;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.util.Objects;
 
 final class MaskAnnotationIntrospector {
 
     private MaskAnnotationIntrospector() {
     }
 
-    static Mask findMaskAnnotation(BeanProperty property) {
-        if (property == null) return null;
+    static <A extends Annotation> A findAnnotation(BeanProperty property, Class<A> annotationType) {
+        if (Objects.isNull(property)) return null;
         var member = property.getMember();
-        if (member == null) return null;
+        if (Objects.isNull(member)) return null;
 
         // 1) Direct @Mask on the property
         if (!property.getType().isContainerType()) {
-            var direct = member.getAnnotation(Mask.class);
-            if (direct != null) return direct;
+            var direct = member.getAnnotation(annotationType);
+            if (Objects.nonNull(direct)) return direct;
         }
 
         // 2) Type-use @Mask on container type arguments
@@ -29,21 +30,21 @@ final class MaskAnnotationIntrospector {
         } else if (raw instanceof Method m) {
             at = m.getAnnotatedReturnType();
         }
-        if (at == null) return null;
+        if (Objects.isNull(at)) return null;
 
         var type = property.getType();
         if (type.isCollectionLikeType()) {
             if (at instanceof AnnotatedParameterizedType apt) {
                 // e.g. List<@Mask String>
-                return apt.getAnnotatedActualTypeArguments()[0].getAnnotation(Mask.class);
+                return apt.getAnnotatedActualTypeArguments()[0].getAnnotation(annotationType);
             } else if (at instanceof AnnotatedArrayType aat) {
                 // e.g. String @Mask[]
-                return aat.getAnnotatedGenericComponentType().getAnnotation(Mask.class);
+                return aat.getAnnotatedGenericComponentType().getAnnotation(annotationType);
             }
         } else if (type.isMapLikeType() && at instanceof AnnotatedParameterizedType apt) {
             // index 1 = value type
             // e.g. Map<String, @Mask String>
-            return apt.getAnnotatedActualTypeArguments()[1].getAnnotation(Mask.class);
+            return apt.getAnnotatedActualTypeArguments()[1].getAnnotation(annotationType);
         }
 
         return null;
