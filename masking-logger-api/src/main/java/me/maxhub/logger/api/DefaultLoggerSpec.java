@@ -27,6 +27,12 @@ class DefaultLoggerSpec implements KVPLoggerSpec, MessageLoggerSpec {
     }
 
     @Override
+    public KVPLoggerSpec throwable(Throwable throwable) {
+        loggingEventBuilder.addKeyValue(LoggingConstants.THROWABLE, throwable);
+        return this;
+    }
+
+    @Override
     public KVPLoggerSpec headers(Map<String, String> headers) {
         loggingEventBuilder.addKeyValue(LoggingConstants.HEADERS, headers);
         return this;

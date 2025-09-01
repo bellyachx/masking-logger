@@ -25,6 +25,8 @@ import org.slf4j.MDC;
 import org.slf4j.event.KeyValuePair;
 
 import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Objects;
 
 /**
@@ -155,6 +157,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         BodyType bodyType = null;
         KeyValuePair headersKvp = null;
         Object messageBody = null;
+        Throwable throwable = null;
         var messageLifecycle = MessageLifecycle.ACTION;
         String automatedSystem = null;
         String opName = null;
@@ -163,6 +166,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
             for (var kvp : keyValuePairs) {
                 switch (kvp.key) {
                     case LoggingConstants.MESSAGE_BODY -> messageBody = kvp.value;
+                    case LoggingConstants.THROWABLE -> throwable = getThrowable(kvp);
                     case LoggingConstants.HEADERS -> headersKvp = kvp;
                     case LoggingConstants.OP_NAME -> opName = getString(kvp);
                     case LoggingConstants.BODY_TYPE -> bodyType = getBodyType(kvp);
@@ -177,13 +181,8 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         var headers = headersProvider.getHeaders();
         builder.headers(headers);
 
-        var informationSB = new StringBuilder(messageLifecycle.getPrefix());
-        if (StringUtils.isNoneBlank(automatedSystem)) {
-            informationSB
-                .append(": ")
-                .append(automatedSystem);
-        }
-        builder.information(informationSB.toString());
+        builder.information(buildInformation(messageLifecycle, automatedSystem, throwable));
+
         builder.rqUID(MDC.get(LoggingConstants.RQ_UID));
         if (StringUtils.isBlank(opName)) {
             opName = MDC.get(LoggingConstants.OP_NAME);
@@ -192,14 +191,50 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
 
         // do masking only after `dataMasker` is initialized based on kvp
         if (Objects.nonNull(messageBody)) {
-            try {
-                messageBody = dataMaskerFactory.create(bodyType).mask(messageBody);
-            } catch (Exception e) {
-                addWarn("could not mask messageBody", e);
-                messageBody = e.getMessage();
-            }
-            builder.message(messageEncoderFactory.create(bodyType).toString(messageBody));
+            builder.message(
+                messageEncoderFactory
+                    .create(bodyType)
+                    .toString(buildJsonBody(messageBody, bodyType))
+            );
         }
+    }
+
+    private Throwable getThrowable(KeyValuePair kvp) {
+        if (kvp.value instanceof Throwable throwable) {
+            return throwable;
+        }
+        return null;
+    }
+
+    private String buildInformation(MessageLifecycle messageLifecycle,
+                                    String automatedSystem,
+                                    Throwable throwable) {
+        if (Objects.nonNull(throwable)) {
+            return buildStacktrace(throwable);
+        }
+        var informationSB = new StringBuilder(messageLifecycle.getPrefix());
+        if (StringUtils.isNoneBlank(automatedSystem)) {
+            informationSB
+                .append(": ")
+                .append(automatedSystem);
+        }
+        return informationSB.toString();
+    }
+
+    private String buildStacktrace(Throwable throwable) {
+        var stringWriter = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(stringWriter));
+        return stringWriter.toString();
+    }
+
+    private Object buildJsonBody(Object messageBody, BodyType bodyType) {
+        try {
+            messageBody = dataMaskerFactory.create(bodyType).mask(messageBody);
+        } catch (Exception e) {
+            addWarn("could not mask messageBody", e);
+            messageBody = e.getMessage();
+        }
+        return messageBody;
     }
 
     private BodyType getBodyType(KeyValuePair kvp) {

@@ -10,6 +10,8 @@ public interface KVPLoggerSpec {
 
     KVPLoggerSpec messageBody(Object messageBody);
 
+    KVPLoggerSpec throwable(Throwable throwable);
+
     KVPLoggerSpec headers(Map<String, String> headers);
 
     KVPLoggerSpec operationName(String operationName);

@@ -5,6 +5,7 @@ public class LoggingConstants {
 
     public static final String RQ_UID = "rqUid";
     public static final String MESSAGE_BODY = "messageBody";
+    public static final String THROWABLE = "throwable";
     public static final String HEADERS = "headers";
     public static final String OP_NAME = "opName";
     public static final String BODY_TYPE = "bodyType";

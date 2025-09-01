@@ -41,38 +41,26 @@ public class WLogger {
         return ERROR_LOGGER_SPEC.with(getCallerClass());
     }
 
-    public static void error(String opName, Object messageBody, String message, Object... args) {
+    public static void error(String opName, Throwable throwable, Object messageBody, String message, Object... args) {
         ERROR_LOGGER_SPEC.with(getCallerClass())
             .message(message, args)
             .status(LoggingConstants.STATUS_ERROR)
             .messageLifecycle(MessageLifecycle.ACTION)
             .operationName(opName)
             .messageBody(messageBody)
+            .throwable(throwable)
             .log();
     }
 
-    public static void error(MessageLifecycle messageLifecycle, String automatedSystem, String opName,
+    public static void error(Map<String, String> headers, String opName, Throwable throwable,
                              Object messageBody, String message, Object... args) {
-        ERROR_LOGGER_SPEC.with(getCallerClass())
-            .message(message, args)
-            .status(LoggingConstants.STATUS_ERROR)
-            .messageLifecycle(messageLifecycle)
-            .automatedSystem(automatedSystem)
-            .operationName(opName)
-            .messageBody(messageBody)
-            .log();
-    }
-
-    public static void error(Map<String, String> headers, MessageLifecycle messageLifecycle, String automatedSystem,
-                             String opName, Object messageBody, String message, Object... args) {
         ERROR_LOGGER_SPEC.with(getCallerClass())
             .message(message, args)
             .headers(headers)
             .status(LoggingConstants.STATUS_ERROR)
-            .messageLifecycle(messageLifecycle)
-            .automatedSystem(automatedSystem)
             .operationName(opName)
             .messageBody(messageBody)
+            .throwable(throwable)
             .log();
     }
 

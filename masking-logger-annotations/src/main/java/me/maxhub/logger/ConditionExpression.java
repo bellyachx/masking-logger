@@ -118,7 +118,7 @@ public enum ConditionExpression {
         return evaluateInternal(value, condition) ^ condition.negate();
     }
 
-    public abstract boolean evaluateInternal(Object value, Condition condition);
+    protected abstract boolean evaluateInternal(Object value, Condition condition);
 
     boolean compare(Object value, String expected, IntPredicate comparator) {
         if (!(value instanceof Comparable)) {
