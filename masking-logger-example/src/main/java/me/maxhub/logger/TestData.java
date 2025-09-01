@@ -13,17 +13,37 @@ import java.util.Map;
 @Data
 @Builder
 public class TestData {
-    @Mask
+    @Mask(predicate = @Predicate(
+        allOf = {
+            @Condition(property = "string", expression = ConditionExpression.MATCHES, expected = "\\d+", negate = true),
+            @Condition(property = "integerWrapper", expression = ConditionExpression.LESS_THAN, expected = "100"),
+            @Condition(property = "primitiveInteger", expression = ConditionExpression.GREATER_THAN, expected = "100")
+        },
+        anyOf = {
+            @Condition(property = "booleanWrapper", expression = ConditionExpression.EQUALS, expected = "true"),
+            @Condition(property = "primitiveBoolean", expression = ConditionExpression.EQUALS, expected = "true")
+        }
+    ))
     private String string;
-    @Mask
+    @Mask(predicate = @Predicate(
+        allOf = @Condition(property = "integerWrapper", expression = ConditionExpression.LESS_THAN, expected = "100")
+    ))
     private Integer integerWrapper;
-    @Mask
+    @Mask(predicate = @Predicate(
+        allOf = @Condition(property = "integerWrapper", expression = ConditionExpression.LESS_THAN, expected = "100")
+    ))
     private int primitiveInteger;
-    @Mask
+    @Mask(predicate = @Predicate(
+        allOf = @Condition(property = "integerWrapper", expression = ConditionExpression.LESS_THAN, expected = "100")
+    ))
     private Double doubleWrapper;
-    @Mask
+    @Mask(predicate = @Predicate(
+        allOf = @Condition(property = "integerWrapper", expression = ConditionExpression.LESS_THAN, expected = "100")
+    ))
     private double primitiveDouble;
-    @Mask
+    @Mask(predicate = @Predicate(
+        allOf = @Condition(property = "integerWrapper", expression = ConditionExpression.LESS_THAN, expected = "100")
+    ))
     private Long longWrapper;
     @Mask
     private long primitiveLong;
@@ -50,15 +70,18 @@ public class TestData {
     // to mask by property path in a container object, the correct way to do it is to annotate the Generic itself, like in the example above
     @Mask(propertyPaths = {"/value/varContainerKey1", "/value/varContainerKey2"})
     private List<VariableContainer> variableContainerLis1;
-    @Mask(propertyPaths = "/object/keyeyeye", condition = @Condition(property = "bigDecimal", condition = ConditionExpression.GREATER_THAN, expected = "1000"))
+    @Mask(
+        propertyPaths = "/object/keyeyeye",
+        predicate = @Predicate(allOf = @Condition(property = "bigDecimal", expression = ConditionExpression.GREATER_THAN, expected = "1000"))
+    )
     private Object object;
     @Mask(propertyPaths = "/object")
     private ObjectContainer<String> objectContainer;
 
     public static TestData buildTestData() {
         return TestData.builder()
-            .string("1231231231231231231231231231231231231231")
-            .integerWrapper(1231231231)
+            .string("1231231231231231231231231231231231231231a")
+            .integerWrapper(12)
             .primitiveInteger(131413412)
             .doubleWrapper(13181818.39192D)
             .primitiveDouble(13181818.39192)
@@ -110,10 +133,10 @@ public class TestData {
     @Getter
     public static class VariableContainer {
         private Object name;
-        @Mask(condition = {
-            @Condition(property = "name", condition = ConditionExpression.EQUALS, expected = "secret"),
-            @Condition(property = "value", condition = ConditionExpression.IS_INSTANCE_OF, expectedType = Integer.class)
-        })
+        @Mask(predicate = @Predicate(allOf = {
+            @Condition(property = "name", expression = ConditionExpression.EQUALS, expected = "secret"),
+            @Condition(property = "value", expression = ConditionExpression.IS_INSTANCE_OF, expectedType = Integer.class)
+        }))
         private Object value;
     }
 

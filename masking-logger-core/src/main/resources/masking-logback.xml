@@ -22,9 +22,9 @@
     </appender>
 
     <appender level="info" name="rollingFile" class="RollingFileAppender">
-        <filter class="ThresholdFilter">
-            <level>INFO</level>
-        </filter>
+<!--        <filter class="ThresholdFilter">-->
+<!--            <level>INFO</level>-->
+<!--        </filter>-->
 
         <filter class="LoggerNameFilter">
             <include>${LOGGER_TO_INCLUDE:-}</include>

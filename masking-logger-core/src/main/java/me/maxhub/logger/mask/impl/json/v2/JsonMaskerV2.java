@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.maxhub.logger.mask.DataMasker;
 import me.maxhub.logger.mask.MaskSupport;
+import me.maxhub.logger.mask.MaskingObjectMapperCustomizer;
 import me.maxhub.logger.properties.provider.PropertyProvider;
+
+import java.util.Optional;
+import java.util.ServiceLoader;
 
 public class JsonMaskerV2 implements DataMasker {
 
@@ -19,6 +23,7 @@ public class JsonMaskerV2 implements DataMasker {
         var simpleModule = new SimpleModule();
         simpleModule.addSerializer(new MaskingParameterSerializer());
         mapper.registerModule(simpleModule);
+        customizeObjectMapper(mapper);
         this.objectMapper = mapper;
     }
 
@@ -29,5 +34,11 @@ public class JsonMaskerV2 implements DataMasker {
         }
 
         return objectMapper.valueToTree(data);
+    }
+
+    private void customizeObjectMapper(ObjectMapper objectMapper) {
+        var customizerServiceLoader = ServiceLoader.load(MaskingObjectMapperCustomizer.class);
+        var customizer = customizerServiceLoader.findFirst();
+        customizer.ifPresent(objectMapperCustomizer -> objectMapperCustomizer.customize(objectMapper));
     }
 }

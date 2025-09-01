@@ -20,7 +20,7 @@ public @interface Condition {
      *
      * @return the condition expression defining how the value should be evaluated.
      */
-    ConditionExpression condition();
+    ConditionExpression expression();
 
     /**
      * Specifies the expected value for the condition evaluation.

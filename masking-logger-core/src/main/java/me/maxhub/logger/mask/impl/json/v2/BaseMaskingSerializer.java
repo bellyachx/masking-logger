@@ -20,20 +20,23 @@ final class BaseMaskingSerializer<T> extends JsonSerializer<T> implements Contex
     private final JsonSerializer<T> delegate;
     private final JsonSerializer<T> maskingSerializer;
     private final MaskingPathConfig maskingPathConfig;
-    private final List<ConditionWithAccessorContainer> conditionWithAccessorContainerList;
+    private final List<ConditionWithAccessorContainer> andConditionContainer;
+    private final List<ConditionWithAccessorContainer> orConditionContainer;
 
     public BaseMaskingSerializer(JsonSerializer<T> delegate, MaskingPathConfig maskingPathConfig) {
-        this(delegate, null, maskingPathConfig, null);
+        this(delegate, null, maskingPathConfig, null, null);
     }
 
     public BaseMaskingSerializer(JsonSerializer<T> delegate,
                                  JsonSerializer<T> maskingSerializer,
                                  MaskingPathConfig maskingPathConfig,
-                                 List<ConditionWithAccessorContainer> conditionWithAccessorContainerList) {
+                                 List<ConditionWithAccessorContainer> andConditionContainer,
+                                 List<ConditionWithAccessorContainer> orConditionContainer) {
         this.delegate = delegate;
         this.maskingSerializer = maskingSerializer;
         this.maskingPathConfig = maskingPathConfig;
-        this.conditionWithAccessorContainerList = conditionWithAccessorContainerList;
+        this.andConditionContainer = andConditionContainer;
+        this.orConditionContainer = orConditionContainer;
     }
 
     @Override
@@ -45,7 +48,7 @@ final class BaseMaskingSerializer<T> extends JsonSerializer<T> implements Contex
         }
 
         try {
-            if (shouldMask(value, gen, serializers, pojo)) {
+            if (shouldMask(pojo)) {
                 maskingSerializer.serialize(value, gen, serializers);
                 return;
             }
@@ -58,23 +61,29 @@ final class BaseMaskingSerializer<T> extends JsonSerializer<T> implements Contex
         delegate.serialize(value, gen, serializers);
     }
 
-    private boolean shouldMask(T value, JsonGenerator gen, SerializerProvider serializers, Object pojo) throws IOException {
-        if (Objects.isNull(conditionWithAccessorContainerList) || conditionWithAccessorContainerList.isEmpty()) {
+    private boolean shouldMask(Object pojo) throws IOException {
+        if (Objects.isNull(pojo) || (isEmpty(andConditionContainer) && isEmpty(orConditionContainer))) {
             return false;
         }
-        for (var condContainer : conditionWithAccessorContainerList) {
-            var siblingAccessor = condContainer.siblingAccessor();
-            var conditionAnn = condContainer.condition();
-            Object siblingValue;
-            siblingValue = siblingAccessor.getValue(pojo);
-            if (Objects.isNull(siblingValue)) {
-                serializers.defaultSerializeValue(value, gen);
-            }
-
-            if (!conditionAnn.condition().evaluate(siblingValue, conditionAnn)) {
+        for (var c : andConditionContainer) {
+            var siblingValue = c.siblingAccessor().getValue(pojo);
+            if (Objects.isNull(siblingValue) || !c.condition().expression().evaluate(siblingValue, c.condition())) {
                 return false;
             }
         }
+
+        if (!orConditionContainer.isEmpty()) {
+            var anyTrue = false;
+            for (var c : orConditionContainer) {
+                var value = c.siblingAccessor().getValue(pojo);
+                if (Objects.nonNull(value) && c.condition().expression().evaluate(value, c.condition())) {
+                    anyTrue = true;
+                    break;
+                }
+            }
+            return anyTrue;
+        }
+
         return true;
     }
 
@@ -87,9 +96,7 @@ final class BaseMaskingSerializer<T> extends JsonSerializer<T> implements Contex
         }
 
         var propertyPaths = maskAnnotation.propertyPaths();
-        if (Objects.nonNull(propertyPaths) &&
-            propertyPaths.length > 0 &&
-            Arrays.stream(propertyPaths).filter(Objects::nonNull).noneMatch(String::isBlank)) {
+        if (isPropertyPathPresent(propertyPaths)) {
             return new RelativePathMaskingSerializer<>(maskingPathConfig, delegate, propertyPaths);
         }
 
@@ -100,37 +107,68 @@ final class BaseMaskingSerializer<T> extends JsonSerializer<T> implements Contex
             return delegate;
         }
 
-        var conditions = new ArrayList<ConditionWithAccessorContainer>();
-        for (var conditionAnn : maskAnnotation.condition()) {
-            var siblingName = conditionAnn.property();
-
-            if (Objects.nonNull(property.getMember())) {
-                var pojoClass = property.getMember().getDeclaringClass();
-                var pojoType = prov.constructType(pojoClass);
-                var beanDescription = prov.getConfig().introspect(pojoType);
-                for (var propDefinition : beanDescription.findProperties()) {
-                    if (StringUtils.equals(propDefinition.getName(), siblingName)) {
-                        conditions.add(new ConditionWithAccessorContainer(propDefinition.getAccessor(), conditionAnn));
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (conditions.isEmpty()) {
-            return maskingSerializer;
-        }
-
         if (delegate instanceof AbstractMaskingSerializer<T> maskingSer) {
-            var serializerWithAnnotation = maskingSer.createMaskedSerializer(maskAnnotation);
-            return new BaseMaskingSerializer<>(delegate, serializerWithAnnotation, maskingPathConfig, conditions);
+            return createConditionalMaskingSerializer(maskAnnotation, property, prov, maskingSer);
         }
         return delegate;
     }
 
-    private boolean isConditionPresent(Mask maskAnnotation) {
-        return Objects.nonNull(maskAnnotation.condition()) && maskAnnotation.condition().length != 0;
+    private BaseMaskingSerializer<T> createConditionalMaskingSerializer(Mask maskAnnotation,
+                                                                        BeanProperty property,
+                                                                        SerializerProvider prov,
+                                                                        AbstractMaskingSerializer<T> maskingSerializer) {
+        var predicate = maskAnnotation.predicate()[0];
+        var andConditions = getAccessors(predicate.allOf(), property, prov);
+        var orConditions = getAccessors(predicate.anyOf(), property, prov);
+
+        var serializerWithAnnotation = maskingSerializer.createMaskedSerializer(maskAnnotation);
+        return new BaseMaskingSerializer<>(
+            delegate, serializerWithAnnotation, maskingPathConfig, andConditions, orConditions
+        );
     }
 
-    record ConditionWithAccessorContainer(AnnotatedMember siblingAccessor, Condition condition) { }
+    private List<ConditionWithAccessorContainer> getAccessors(Condition[] conditions,
+                                                              BeanProperty property,
+                                                              SerializerProvider provider) {
+        var conditionContainerList = new ArrayList<ConditionWithAccessorContainer>();
+        for (var conditionAnn : conditions) {
+            var siblingAccessor = getSiblingAccessor(conditionAnn.property(), property, provider);
+            if (Objects.nonNull(siblingAccessor)) {
+                conditionContainerList.add(new ConditionWithAccessorContainer(siblingAccessor, conditionAnn));
+            }
+        }
+        return conditionContainerList;
+    }
+
+    private AnnotatedMember getSiblingAccessor(String siblingName, BeanProperty property,
+                                               SerializerProvider prov) {
+        if (Objects.nonNull(property.getMember())) {
+            var pojoClass = property.getMember().getDeclaringClass();
+            var pojoType = prov.constructType(pojoClass);
+            var beanDescription = prov.getConfig().introspect(pojoType);
+            for (var propDefinition : beanDescription.findProperties()) {
+                if (StringUtils.equals(propDefinition.getName(), siblingName)) {
+                    return propDefinition.getAccessor();
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isPropertyPathPresent(String[] propertyPaths) {
+        return Objects.nonNull(propertyPaths) &&
+            propertyPaths.length > 0 &&
+            Arrays.stream(propertyPaths).filter(Objects::nonNull).noneMatch(String::isBlank);
+    }
+
+    private boolean isConditionPresent(Mask maskAnnotation) {
+        return Objects.nonNull(maskAnnotation.predicate()) && maskAnnotation.predicate().length != 0;
+    }
+
+    private boolean isEmpty(Collection<?> collection) {
+        return Objects.isNull(collection) || collection.isEmpty();
+    }
+
+    record ConditionWithAccessorContainer(AnnotatedMember siblingAccessor, Condition condition) {
+    }
 }
