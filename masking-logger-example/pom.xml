@@ -10,8 +10,7 @@
     <artifactId>masking-logger-example</artifactId>
     <packaging>jar</packaging>
 
-    <name>test</name>
-    <url>http://maven.apache.org</url>
+    <name>masking-logger-example</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,11 +20,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>me.maxhub.logger</groupId>
-            <artifactId>masking-logger-spring-boot-starter</artifactId>
-            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -42,29 +36,30 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
             <version>1.37</version>
         </dependency>
+
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>1.37</version>
+        </dependency>
+
+        <!-- Masking logger -->
+        <dependency>
+            <groupId>me.maxhub.logger</groupId>
+            <artifactId>masking-logger-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>me.maxhub.logger</groupId>
             <artifactId>masking-logger-annotations</artifactId>
         </dependency>
     </dependencies>
-
 
     <build>
         <plugins>
