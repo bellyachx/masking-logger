@@ -44,6 +44,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
     private final ObjectMapper mapper;
     private final JsonEncoder jsonEncoder;
     private final XmlEncoder xmlEncoder;
+    private MessageEncoder<?> defaultEncoder;
 
     private PropertyProvider propertyProvider = new FilePropertyProvider();
     private JsonMasker jsonMasker;
@@ -187,16 +188,16 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         xmlMasker = new XmlMasker();
         // use JSON masker as default if 'defaultMasker' property is not provided.
         defaultDataMasker = jsonMasker;
-        MessageEncoder<?> messageEncoder = jsonEncoder;
+        defaultEncoder = jsonEncoder;
         if (defaultMasker != null && defaultMasker.equalsIgnoreCase(MaskerType.XML.name())) {
             defaultDataMasker = new XmlMasker();
-            messageEncoder = xmlEncoder;
+            defaultEncoder = xmlEncoder;
         }
 
         if (Boolean.FALSE.equals(enableMasker)) {
             defaultDataMasker = new NOPMasker();
             // this is needed so that the message body will be encoded either in a JSON or XML instead of `messageBody.toString()`
-            ((NOPMasker) defaultDataMasker).setMessageEncoder(messageEncoder);
+            ((NOPMasker) defaultDataMasker).setMessageEncoder(defaultEncoder);
             addInfo("Data masker not enabled");
         }
     }
@@ -258,7 +259,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
                 addWarn("could not mask messageBody", e);
                 messageBody = e.getMessage();
             }
-            builder.message(messageBody);
+            builder.message(defaultEncoder.toString(messageBody));
         }
     }
 

@@ -40,6 +40,7 @@ public class RequestMappingInterceptor {
 
             var methodContext = buildMethodContext(method, args);
 
+            @SuppressWarnings({"java:S2259", "ConstantConditions"}) // cannot be null in a web environment
             var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             var requestUri = request.getRequestURI();
             var httpMethod = request.getMethod();

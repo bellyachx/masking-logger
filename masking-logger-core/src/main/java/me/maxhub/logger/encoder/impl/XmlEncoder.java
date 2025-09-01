@@ -9,4 +9,10 @@ public class XmlEncoder implements MessageEncoder<Object> {
         // todo TBD
         return "<data>encoded xml</data>";
     }
+
+    @Override
+    public String toString(Object message) {
+        // todo TBD
+        return "<data>encoded xml</data>";
+    }
 }
