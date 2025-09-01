@@ -3,6 +3,8 @@ package me.maxhub.logger.aop.http;
 import me.maxhub.logger.LoggingContext;
 import me.maxhub.logger.aop.LogIgnore;
 import me.maxhub.logger.api.WLogger;
+import me.maxhub.logger.mask.Mask;
+import me.maxhub.logger.mask.impl.json.v2.MaskedParameter;
 import me.maxhub.logger.util.LoggingConstants;
 import me.maxhub.logger.util.MessageLifecycle;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -106,7 +108,7 @@ public class RequestMappingInterceptor {
             } else if (param.isAnnotationPresent(RequestHeader.class)) {
                 headers = argValue;
             } else if (param.isAnnotationPresent(Mask.class)) {
-                otherArgs.put(param.getName(), new MaskedParameter(param.getName(), argValue));
+                otherArgs.put(param.getName(), new MaskedParameter(argValue));
             } else {
                 otherArgs.put(param.getName(), argValue);
             }

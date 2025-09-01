@@ -23,8 +23,8 @@ public class MaskingLoggerAutoconfiguration {
         public SpringContextHolderConfiguration(ApplicationContext applicationContext,
                                                 LoggingProps loggingProps,
                                                 HeaderFilterProps headerFilterProps) {
-            SpringContextHolder.setCtx(applicationContext);
-            SpringContextHolder.setLoggingProps(loggingProps);
+            SpringContextHolder.setApplicationContext(applicationContext);
+            SpringContextHolder.setLoggingProperties(loggingProps);
             SpringContextHolder.setHeaderFilterProps(headerFilterProps);
         }
     }

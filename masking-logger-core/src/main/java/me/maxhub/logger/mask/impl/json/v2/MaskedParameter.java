@@ -7,7 +7,6 @@ import me.maxhub.logger.mask.Mask;
 @Getter
 @RequiredArgsConstructor
 public class MaskedParameter {
-    private final String name;
     @Mask
     private final Object value;
 }

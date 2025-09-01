@@ -23,7 +23,7 @@ public class SpringPropertyProvider implements PropertyProvider {
         if (cachedLoggingProps != null) {
             return cachedLoggingProps;
         }
-        cachedLoggingProps = SpringContextHolder.getLoggingProps();
+        cachedLoggingProps = SpringContextHolder.getLoggingProperties();
         return cachedLoggingProps;
     }
 

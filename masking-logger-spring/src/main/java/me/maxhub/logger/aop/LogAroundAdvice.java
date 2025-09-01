@@ -1,6 +1,8 @@
 package me.maxhub.logger.aop;
 
 import me.maxhub.logger.api.WLogger;
+import me.maxhub.logger.mask.Mask;
+import me.maxhub.logger.mask.impl.json.v2.MaskedParameter;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -67,7 +69,7 @@ public class LogAroundAdvice {
             var param = params[i];
             var argValue = args[i];
             if (param.isAnnotationPresent(Mask.class)) {
-                arguments.put(param.getName(), new MaskedParameter(param.getName(), argValue));
+                arguments.put(param.getName(), new MaskedParameter(argValue));
                 continue;
             }
             if (!param.isAnnotationPresent(LogIgnore.class)) {
