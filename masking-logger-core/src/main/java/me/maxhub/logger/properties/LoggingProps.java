@@ -1,8 +1,8 @@
 package me.maxhub.logger.properties;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import me.maxhub.logger.mask.enums.MaskerType;
+import me.maxhub.logger.mask.enums.MaskerVersion;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,6 +13,8 @@ import java.util.Set;
 @Data
 public class LoggingProps {
     Boolean enabled;
+    MaskerType defaultMasker;
+    MaskerVersion maskerVersion;
     Set<String> fields;
 
     public Set<String> getFields() {

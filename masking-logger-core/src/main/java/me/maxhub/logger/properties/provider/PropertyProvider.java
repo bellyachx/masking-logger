@@ -16,7 +16,7 @@ public interface PropertyProvider {
      *
      * @return a {@link LoggingProps} containing logging properties.
      */
-    LoggingProps getProperties();
+    LoggingProps getLoggingProps();
 
     HeaderFilterProps getHeaderFilterProps();
 }

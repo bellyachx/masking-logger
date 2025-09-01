@@ -6,7 +6,7 @@ import me.maxhub.logger.properties.provider.PropertyProvider;
 import me.maxhub.logger.util.LoggingConstants;
 import org.slf4j.event.KeyValuePair;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -23,7 +23,7 @@ public class FilteredHeadersProvider implements HeadersProvider {
 
     @Override
     public Map<String, String> getHeaders() {
-        Map<String, String> headers = Collections.emptyMap();
+        Map<String, String> headers = new HashMap<>();
         if (Objects.nonNull(headerKvp) && Objects.requireNonNull(headerKvp.value) instanceof Map<?, ?> mapHeaders) {
             try {
                 headers = (Map<String, String>) mapHeaders;
@@ -49,6 +49,9 @@ public class FilteredHeadersProvider implements HeadersProvider {
 
     private Map<String, String> filterHeaders(Map<String, String> headers) {
         var headerFilterProps = propertyProvider.getHeaderFilterProps();
+        if (Objects.isNull(headerFilterProps)) {
+            return headers;
+        }
         var enabled = headerFilterProps.getEnabled();
         if (Boolean.FALSE.equals(enabled)) {
             return headers;

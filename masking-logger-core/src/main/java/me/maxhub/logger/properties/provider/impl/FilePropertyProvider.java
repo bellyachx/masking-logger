@@ -1,6 +1,7 @@
 package me.maxhub.logger.properties.provider.impl;
 
-
+import me.maxhub.logger.mask.enums.MaskerType;
+import me.maxhub.logger.mask.enums.MaskerVersion;
 import me.maxhub.logger.properties.HeaderFilterProps;
 import me.maxhub.logger.properties.LoggingProps;
 import me.maxhub.logger.properties.provider.PropertyProvider;
@@ -20,7 +21,7 @@ public class FilePropertyProvider implements PropertyProvider {
     private HeaderFilterProps cachedHeaderFilterProps;
 
     @Override
-    public LoggingProps getProperties() {
+    public LoggingProps getLoggingProps() {
         if (cachedLoggingProps != null) {
             return cachedLoggingProps;
         }
@@ -28,16 +29,20 @@ public class FilePropertyProvider implements PropertyProvider {
         var loggingProps = new LoggingProps();
         try {
             assert res != null;
-            try(var is = new FileInputStream(res.getFile())) {
+            try (var is = new FileInputStream(res.getFile())) {
                 Properties props = new Properties();
                 props.load(is);
-                props.forEach((k,v)->{
+                props.forEach((k, v) -> {
                     if (k.equals("wlogger.mask.enabled")) {
                         loggingProps.setEnabled(Boolean.parseBoolean(v.toString()));
                     } else if (k.equals("wlogger.mask.fields")) {
                         for (String path : ((String) v).split(",")) {
                             loggingProps.getFields().add(path.trim());
                         }
+                    } else if (k.equals("wlogger.mask.default-masker")) {
+                        loggingProps.setDefaultMasker(MaskerType.valueOf(v.toString().toUpperCase()));
+                    } else if (k.equals("wlogger.mask.masker-version")) {
+                        loggingProps.setMaskerVersion(MaskerVersion.valueOf(v.toString().toUpperCase()));
                     }
                 });
             }
@@ -60,7 +65,7 @@ public class FilePropertyProvider implements PropertyProvider {
         var headerFilterProps = new HeaderFilterProps();
         try {
             assert res != null;
-            try(var is = new FileInputStream(res.getFile())) {
+            try (var is = new FileInputStream(res.getFile())) {
                 Properties props = new Properties();
                 props.load(is);
                 for (Map.Entry<Object, Object> entry : props.entrySet()) {

@@ -4,12 +4,15 @@ wlogger:
   mask:
     enabled: true
     fields:
+      - /stringArray/#
       - /string
       - /testData/integer
       - /testDataList/#/bigDecimal
       - /testDataList/#/testDataList/#/integer
       - /stringList/#/
       - /password
+    default-masker: json
+    masker-version: v2
 
 spring:
   application:

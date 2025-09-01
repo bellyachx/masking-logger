@@ -8,11 +8,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface LogAround {
-    // String[] include() default {};
-    //
-    // String[] exclude() default {};
-
-    String mask() default "";
-
+    /**
+     * A flag to enable/disable logging of method return value.
+     *
+     * @return true if logging of return value is enabled, false otherwise.
+     */
     boolean logReturn() default true;
 }

@@ -8,16 +8,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.micrometer.tracing.Tracer;
 import lombok.Setter;
-import me.maxhub.logger.encoder.MessageEncoder;
-import me.maxhub.logger.encoder.impl.JsonEncoder;
-import me.maxhub.logger.encoder.impl.XmlEncoder;
 import me.maxhub.logger.headers.impl.DetailedHeadersProvider;
+import me.maxhub.logger.logback.encoder.enums.BodyType;
 import me.maxhub.logger.logback.encoder.model.LogModel;
 import me.maxhub.logger.logback.encoder.model.Tracing;
-import me.maxhub.logger.mask.DataMasker;
-import me.maxhub.logger.mask.enums.MaskerType;
+import me.maxhub.logger.mask.DataMaskerFactory;
+import me.maxhub.logger.mask.MessageEncoderFactory;
 import me.maxhub.logger.properties.provider.PropertyProvider;
-import me.maxhub.logger.mask.impl.*;
 import me.maxhub.logger.properties.provider.impl.FilePropertyProvider;
 import me.maxhub.logger.properties.provider.impl.SpringPropertyProvider;
 import me.maxhub.logger.spring.SpringContextHolder;
@@ -42,57 +39,18 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
     private static final String POD_SOURCE_ENV = "HOSTNAME";
 
     private final ObjectMapper mapper;
-    private final JsonEncoder jsonEncoder;
-    private final XmlEncoder xmlEncoder;
-    private MessageEncoder<?> defaultEncoder;
 
+    @Setter
     private PropertyProvider propertyProvider = new FilePropertyProvider();
-    private JsonMasker jsonMasker;
-    private XmlMasker xmlMasker;
-    private DataMasker defaultDataMasker;
+
+    private MessageEncoderFactory messageEncoderFactory;
+    private DataMaskerFactory dataMaskerFactory;
 
     private Tracer tracer;
 
     private String projectName = UNKNOWN;
     private String podSource = UNKNOWN;
 
-    /**
-     * A configurable property that enables or disables the masking feature.
-     * <p>Can be configured from the `logback.xml` file as following:
-     * <pre>
-     * {@code
-     *     <import class="me.maxhub.logging.logback.encoder.MaskingJsonEncoder"/>
-     *     <appender name="..." class="...">
-     *         <encoder class="MaskingJsonEncoder">
-     *             ...
-     *             <enableMasker>false</enableMasker>
-     *             ...
-     *         </encoder>
-     *     </appender>
-     * }
-     * </pre>
-     */
-    @Setter
-    private Boolean enableMasker;
-    /**
-     * A configurable property that configures the default {@link DataMasker}.
-     * <p>Can be configured from the `logback.xml` file as following:
-     * <pre>
-     * {@code
-     *     <import class="me.maxhub.logging.logback.encoder.MaskingJsonEncoder"/>
-     *     <appender name="..." class="...">
-     *         <encoder class="MaskingJsonEncoder">
-     *             ...
-     *             <defaultMasker>json</defaultMasker>
-     *             ...
-     *         </encoder>
-     *     </appender>
-     * }
-     * </pre>
-     * <p>Allowed values are: {@code json} and {@code xml}
-     */
-    @Setter
-    private String defaultMasker;
     /**
      * A configurable property that configures the {@link PropertyProvider} for logging properties.
      * <p>Can be configured from the `logback.xml` file as following:
@@ -118,8 +76,6 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(new JavaTimeModule());
         this.mapper = objectMapper;
-        this.jsonEncoder = new JsonEncoder(objectMapper);
-        this.xmlEncoder = new XmlEncoder();
 
         try {
             this.projectName = System.getenv(PROJECT_NAME_ENV);
@@ -131,7 +87,12 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
 
     @Override
     public void start() {
-        initMasker();
+        if ("spring".equalsIgnoreCase(propertiesProvider)) {
+            propertyProvider = new SpringPropertyProvider();
+        }
+        messageEncoderFactory = new MessageEncoderFactory(propertyProvider, mapper);
+        dataMaskerFactory = new DataMaskerFactory(propertyProvider, messageEncoderFactory);
+
         started = true;
     }
 
@@ -180,28 +141,6 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         return null;
     }
 
-    private void initMasker() {
-        if ("spring".equalsIgnoreCase(propertiesProvider)) {
-            propertyProvider = new SpringPropertyProvider();
-        }
-        jsonMasker = new JsonMasker(mapper, propertyProvider);
-        xmlMasker = new XmlMasker();
-        // use JSON masker as default if 'defaultMasker' property is not provided.
-        defaultDataMasker = jsonMasker;
-        defaultEncoder = jsonEncoder;
-        if (defaultMasker != null && defaultMasker.equalsIgnoreCase(MaskerType.XML.name())) {
-            defaultDataMasker = new XmlMasker();
-            defaultEncoder = xmlEncoder;
-        }
-
-        if (Boolean.FALSE.equals(enableMasker)) {
-            defaultDataMasker = new NOPMasker();
-            // this is needed so that the message body will be encoded either in a JSON or XML instead of `messageBody.toString()`
-            ((NOPMasker) defaultDataMasker).setMessageEncoder(defaultEncoder);
-            addInfo("Data masker not enabled");
-        }
-    }
-
     private void initTracer() {
         try {
             if (Objects.isNull(tracer)) {
@@ -213,7 +152,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
     }
 
     private void fillWithProperties(LogModel.LogModelBuilder builder, ILoggingEvent event) {
-        var dataMasker = defaultDataMasker;
+        BodyType bodyType = null;
         KeyValuePair headersKvp = null;
         Object messageBody = null;
         var messageLifecycle = MessageLifecycle.ACTION;
@@ -226,7 +165,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
                     case LoggingConstants.MESSAGE_BODY -> messageBody = kvp.value;
                     case LoggingConstants.HEADERS -> headersKvp = kvp;
                     case LoggingConstants.OP_NAME -> opName = getString(kvp);
-                    case LoggingConstants.BODY_TYPE -> dataMasker = getMasker(kvp, defaultDataMasker);
+                    case LoggingConstants.BODY_TYPE -> bodyType = getBodyType(kvp);
                     case LoggingConstants.MSG_LIFECYCLE -> messageLifecycle = getMessageLifecycle(kvp);
                     case LoggingConstants.AS -> automatedSystem = getString(kvp);
                     case LoggingConstants.STATUS -> builder.status(getStatus(kvp, event));
@@ -254,35 +193,20 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         // do masking only after `dataMasker` is initialized based on kvp
         if (Objects.nonNull(messageBody)) {
             try {
-                messageBody = dataMasker.mask(messageBody);
+                messageBody = dataMaskerFactory.create(bodyType).mask(messageBody);
             } catch (Exception e) {
                 addWarn("could not mask messageBody", e);
                 messageBody = e.getMessage();
             }
-            builder.message(defaultEncoder.toString(messageBody));
+            builder.message(messageEncoderFactory.create(bodyType).toString(messageBody));
         }
     }
 
-    private DataMasker getMasker(KeyValuePair kvp, DataMasker defaultDataMasker) {
-        MessageEncoder<?> messageEncoder = null;
-        var dataMasker = defaultDataMasker;
-        if (!(kvp.value instanceof String strMasker) || strMasker.isBlank()) {
-            return dataMasker;
+    private BodyType getBodyType(KeyValuePair kvp) {
+        if (kvp.value instanceof BodyType bodyType) {
+            return bodyType;
         }
-        if (strMasker.equalsIgnoreCase(MaskerType.JSON.name())) {
-            dataMasker = jsonMasker;
-            messageEncoder = jsonEncoder;
-        } else if (strMasker.equalsIgnoreCase(MaskerType.XML.name())) {
-            dataMasker = xmlMasker;
-            messageEncoder = xmlEncoder;
-        }
-        if (defaultDataMasker instanceof NOPMasker nopMasker) {
-            if (Objects.nonNull(messageEncoder)) {
-                nopMasker.setMessageEncoder(messageEncoder);
-            }
-            return nopMasker;
-        }
-        return dataMasker;
+        return null;
     }
 
     private MessageLifecycle getMessageLifecycle(KeyValuePair kvp) {

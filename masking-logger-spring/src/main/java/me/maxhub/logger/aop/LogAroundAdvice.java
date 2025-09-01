@@ -1,7 +1,6 @@
 package me.maxhub.logger.aop;
 
 import me.maxhub.logger.api.WLogger;
-import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,7 +9,6 @@ import org.slf4j.event.Level;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 @Aspect
@@ -26,7 +24,7 @@ public class LogAroundAdvice {
             method = signature.getMethod();
             var args = joinPoint.getArgs();
             clazz = method.getDeclaringClass();
-            var methodArguments = buildMethodArguments(method, args, logAround);
+            var methodArguments = buildMethodArguments(method, args);
             WLogger.with(clazz, Level.INFO)
                 .message("Method [{}] called", method.getName())
                 .messageBody(methodArguments)
@@ -60,22 +58,23 @@ public class LogAroundAdvice {
         return result;
     }
 
-    private MethodArguments buildMethodArguments(Method method, Object[] args, LogAround logAround) {
+    private MethodArguments buildMethodArguments(Method method, Object[] args) {
         var builder = MethodArguments.builder();
         var params = method.getParameters();
-        Map<String, Object> argumements = new HashMap<>(args.length);
+        var arguments = HashMap.<String, Object>newHashMap(args.length);
 
         for (int i = 0; i < params.length; i++) {
             var param = params[i];
-            if (StringUtils.equals(param.getName(), logAround.mask())) {
-                builder.requestBody(args[i]);
+            var argValue = args[i];
+            if (param.isAnnotationPresent(Mask.class)) {
+                arguments.put(param.getName(), new MaskedParameter(param.getName(), argValue));
                 continue;
             }
             if (!param.isAnnotationPresent(LogIgnore.class)) {
-                argumements.put(param.getName(), args[i]);
+                arguments.put(param.getName(), argValue);
             }
         }
-        builder.arguments(argumements);
+        builder.arguments(arguments);
         return builder.build();
     }
 }

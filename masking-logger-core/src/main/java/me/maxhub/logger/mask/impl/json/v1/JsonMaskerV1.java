@@ -1,34 +1,31 @@
-package me.maxhub.logger.mask.impl;
+package me.maxhub.logger.mask.impl.json.v1;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import me.maxhub.logger.encoder.impl.JsonEncoder;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.maxhub.logger.mask.DataMasker;
+import me.maxhub.logger.mask.MaskSupport;
 import me.maxhub.logger.properties.provider.PropertyProvider;
 
-public class JsonMasker implements DataMasker {
+public class JsonMaskerV1 implements DataMasker {
 
-    private final NOPMasker nopMasker = new NOPMasker();
     private final ObjectMapper objectMapper;
     private final PropertyProvider propertyProvider;
 
-    public JsonMasker(ObjectMapper objectMapper, PropertyProvider propertyProvider) {
-        this.objectMapper = objectMapper;
+    public JsonMaskerV1(PropertyProvider propertyProvider) {
+        var mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        this.objectMapper = mapper;
         this.propertyProvider = propertyProvider;
-        this.nopMasker.setMessageEncoder(new JsonEncoder(objectMapper));
     }
 
     @Override
     public Object mask(Object data) {
-        var properties = propertyProvider.getProperties();
-        if (Boolean.FALSE.equals(properties.getEnabled())) {
-            return nopMasker.mask(data);
+        if (data instanceof String strValue) {
+            return MaskSupport.mask(strValue);
         }
-        if (data instanceof String) {
-            return data;
-        }
-
+        var properties = propertyProvider.getLoggingProps();
         var maskPaths = properties.getFields();
 
         Object masked = data;
@@ -102,16 +99,6 @@ public class JsonMasker implements DataMasker {
             return text;
         }
 
-        int length = text.length();
-        int start = (length * 30) / 100;
-        int end = (length * 70) / 100;
-        int maskLen = end - start;
-
-        if (maskLen <= 0) {
-            return text;
-        }
-
-        var mask = "*".repeat(maskLen);
-        return text.substring(0, start) + mask + text.substring(start + maskLen);
+        return MaskSupport.mask(text);
     }
 }

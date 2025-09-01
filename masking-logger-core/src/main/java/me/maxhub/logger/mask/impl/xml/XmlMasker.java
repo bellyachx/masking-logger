@@ -1,4 +1,4 @@
-package me.maxhub.logger.mask.impl;
+package me.maxhub.logger.mask.impl.xml;
 
 
 import me.maxhub.logger.encoder.MessageEncoder;

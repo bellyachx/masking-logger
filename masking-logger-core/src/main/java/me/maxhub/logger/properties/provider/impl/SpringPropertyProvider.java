@@ -19,7 +19,7 @@ public class SpringPropertyProvider implements PropertyProvider {
     private HeaderFilterProps cachedHeaderFilterProps;
 
     @Override
-    public LoggingProps getProperties() {
+    public LoggingProps getLoggingProps() {
         if (cachedLoggingProps != null) {
             return cachedLoggingProps;
         }

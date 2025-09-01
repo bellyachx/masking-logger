@@ -6,6 +6,9 @@ import java.util.Objects;
 
 public class LoggingContext {
 
+    private LoggingContext() {
+    }
+
     public static final ThreadLocal<Map<String, Object>> CONTEXT = new ThreadLocal<>();
 
     public static void setContext(Map<String, Object> context) {

@@ -1,6 +1,6 @@
 package me.maxhub.logger;
 
-import me.maxhub.logger.aop.RequestMappingInterceptor;
+import me.maxhub.logger.aop.http.RequestMappingInterceptor;
 import me.maxhub.logger.properties.LoggingRequestProps;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

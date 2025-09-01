@@ -28,7 +28,7 @@
 
         <filter class="LoggerNameFilter">
             <include>${LOGGER_TO_INCLUDE:-}</include>
-            <ignore>me.maxhub.logger.aop.RequestMappingInterceptor</ignore>
+            <ignore>me.maxhub.logger.aop.http.RequestMappingInterceptor</ignore>
             <ignore>me.maxhub.logging</ignore>
             <ignore>${LOGGER_TO_IGNORE:-}</ignore>
         </filter>
@@ -46,8 +46,6 @@
         </triggeringPolicy>
 
         <encoder class="MaskingJsonEncoder">
-            <enableMasker>${ENABLE_MASKER:-true}</enableMasker>
-            <defaultMasker>${DEFAULT_MASKER:-json}</defaultMasker>
             <propertiesProvider>${PROPS_PROVIDER:-other}</propertiesProvider>
         </encoder>
     </appender>

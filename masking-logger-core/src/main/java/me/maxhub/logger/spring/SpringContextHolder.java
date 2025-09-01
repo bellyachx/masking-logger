@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class SpringContextHolder {
 
     @Setter
-    private static ApplicationContext ctx;
+    private static ApplicationContext APPLICATION_CONTEXT;
     @Getter
     @Setter
     private static LoggingProps loggingProps;
@@ -23,10 +23,13 @@ public class SpringContextHolder {
     private SpringContextHolder() {}
 
     public static Environment getEnv() {
-        return ctx.getEnvironment();
+        return APPLICATION_CONTEXT.getEnvironment();
     }
 
     public static <T> T getBean(Class<T> beanClass) {
-        return ctx.getBean(beanClass);
+        if (APPLICATION_CONTEXT == null) {
+            return null;
+        }
+        return APPLICATION_CONTEXT.getBean(beanClass);
     }
 }

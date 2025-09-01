@@ -1,6 +1,7 @@
-package me.maxhub.logger.aop;
+package me.maxhub.logger.aop.http;
 
 import me.maxhub.logger.LoggingContext;
+import me.maxhub.logger.aop.LogIgnore;
 import me.maxhub.logger.api.WLogger;
 import me.maxhub.logger.util.LoggingConstants;
 import me.maxhub.logger.util.MessageLifecycle;
@@ -68,6 +69,7 @@ public class RequestMappingInterceptor {
                 headers = responseEntity.getHeaders().toSingleValueMap();
                 responseBody = responseEntity.getBody();
             } else {
+                // noinspection unchecked
                 headers = (Map<String, String>) LoggingContext.get(LoggingConstants.HEADERS);
                 responseBody = response;
             }
@@ -95,15 +97,18 @@ public class RequestMappingInterceptor {
 
         for (int i = 0; i < params.length; i++) {
             var param = params[i];
+            var argValue = args[i];
             if (param.isAnnotationPresent(LogIgnore.class)) {
                 continue;
             }
             if (param.isAnnotationPresent(RequestBody.class)) {
-                methodContextBuilder.requestBody(args[i]);
+                methodContextBuilder.requestBody(argValue);
             } else if (param.isAnnotationPresent(RequestHeader.class)) {
-                headers = args[i];
+                headers = argValue;
+            } else if (param.isAnnotationPresent(Mask.class)) {
+                otherArgs.put(param.getName(), new MaskedParameter(param.getName(), argValue));
             } else {
-                otherArgs.put(param.getName(), args[i]);
+                otherArgs.put(param.getName(), argValue);
             }
         }
 
@@ -112,6 +117,7 @@ public class RequestMappingInterceptor {
         }
         if (Objects.nonNull(headers)) {
             if (headers instanceof Map<?, ?> mapHeaders) {
+                // noinspection unchecked
                 methodContextBuilder.requestHeaders((Map<String, String>) mapHeaders);
             } else if (headers instanceof HttpHeaders httpHeaders) {
                 methodContextBuilder.requestHeaders(httpHeaders.toSingleValueMap());

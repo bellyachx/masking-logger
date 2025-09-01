@@ -21,9 +21,9 @@ public class App {
         // }
         MDC.put("rqUID", UUID.randomUUID().toString());
         var levels = List.of(Level.values());
-        var testData = buildTestData();
-        var testData1 = buildTestData();
-        var testData2 = buildTestData();
+        var testData = TestData.buildTestData();
+        var testData1 = TestData.buildTestData();
+        var testData2 = TestData.buildTestData();
         testData1.setTestDataList(List.of(testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2, testData2));
         testData.setTestDataList(List.of(testData1, testData1));
         for (Level level : levels) {
@@ -40,7 +40,7 @@ public class App {
 //                .log("Test log message with argument [{}]");
         }
 
-        WLogger.info("opName", buildTestRecord(), "Message [{}] [{}]", "TEST", Instant.now());
+        WLogger.info("opName", TestRecord.buildTestRecord(), "Message [{}] [{}]", "TEST", Instant.now());
 
         WLogger.error().message("yes yes yes [{}]", "no").log();
 
@@ -52,45 +52,4 @@ public class App {
         var neutral = LoggerFactory.getLogger("me.maxhub.neutral");
         neutral.info("neutral");
     }
-
-    private static TestData buildTestData() {
-        return TestData.builder()
-            .string("1231231231231231231231231231231231231231")
-            .integer(1231231231)
-            .aDouble(13181818.39192D)
-            .bigDecimal(new BigDecimal("12331231234123.45412316"))
-            .bool(true)
-            .map(Map.of("key1", "value1", "key2", "value2"))
-            .stringList(List.of("1123123123", "1123123123", "1123123123"))
-            .testData(TestData.builder()
-                .string("1231231231231231231231231231231231231231")
-                .integer(1231231231)
-                .aDouble(13181818.39192D)
-                .bigDecimal(new BigDecimal("12331231234123.45412316"))
-                .bool(false)
-                .map(Map.of("key1", "value1", "key2", "value2"))
-                .build())
-            .build();
-    }
-
-    private static TestRecord buildTestRecord() {
-        return TestRecord.builder()
-            .string("1231231231231231231231231231231231231231")
-            .integer(1231231231)
-            .aDouble(13181818.39192)
-            .bigDecimal(new BigDecimal("12331231234123.45412316"))
-            .bool(true)
-            .map(Map.of("key1", "value1", "key2", "value2"))
-            .stringList(List.of("1", "2", "3"))
-            .testRecord(TestRecord.builder()
-                .string("1231231231231231231231231231231231231231")
-                .integer(1231231231)
-                .aDouble(13181818.39192)
-                .bigDecimal(new BigDecimal("12331231234123.45412316"))
-                .bool(false)
-                .map(Map.of("key1", "value1", "key2", "value2"))
-                .build())
-            .build();
-    }
-
 }

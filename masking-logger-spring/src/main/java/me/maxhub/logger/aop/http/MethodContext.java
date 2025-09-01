@@ -1,4 +1,4 @@
-package me.maxhub.logger.aop;
+package me.maxhub.logger.aop.http;
 
 import lombok.Builder;
 import lombok.Data;

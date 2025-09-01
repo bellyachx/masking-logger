@@ -26,7 +26,7 @@ Add the dependency to your Maven project:
 <dependency>
     <groupId>me.maxhub</groupId>
     <artifactId>masking-logger-spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 ### Configuration
@@ -36,8 +36,6 @@ Add the dependency to your Maven project:
 <configuration>
     <include resource="masking-logback.xml"/>
 
-    <property name="ENABLE_MASKER" value="true"/>
-    <property name="DEFAULT_MASKER" value="json"/>
     <property name="PROPS_PROVIDER" value="spring"/>
     <property name="LOGGER_TO_INCLUDE" value="me.maxhub.include1, me.maxhub"/>
     <property name="LOGGER_TO_IGNORE" value="me.maxhub.ignore1"/>
@@ -49,10 +47,12 @@ Add the dependency to your Maven project:
 </configuration>
 ```
 #### Configuring Masking Patterns
-Create a file to define masking patterns: `logging.mask.properties`
+Create a file to define masking patterns: `wlogger.properties`
 ```properties
 # Example masking patterns
 wlogger.mask.enabled=true
+wlogger.mask.default-masker=json
+wlogger.mask.masker-version=v2
 wlogger.mask.fields=\
   /string,\
   /testData/string,\
@@ -69,12 +69,15 @@ wlogger:
   mask:
     enabled: true
     fields:
+      - /stringArray/#
       - /string
       - /testData/integer
       - /testDataList/#/bigDecimal
       - /testDataList/#/testDataList/#/integer
       - /stringList/#/
       - /password
+    default-masker: json
+    masker-version: v2
 ```
 ## Usage Examples
 ### Basic Logging with Masking
