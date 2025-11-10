@@ -1,4 +1,4 @@
-package me.maxhub.logger.mask.impl.json.v1;
+package me.maxhub.logger.mask.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
+@Deprecated(since = "0.3.0")
 public class JsonMaskerV1 implements DataMasker {
 
     private final ObjectMapper objectMapper;

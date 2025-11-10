@@ -6,7 +6,7 @@
 
     <groupId>me.maxhub.logger</groupId>
     <artifactId>masking-logger-bom</artifactId>
-    <version>0.2.2</version>
+    <version>0.3.0</version>
     <packaging>pom</packaging>
 
     <name>masking-logger-bom</name>
@@ -47,6 +47,11 @@
             <dependency>
                 <groupId>me.maxhub.logger</groupId>
                 <artifactId>masking-logger-autoconfig</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>me.maxhub.logger</groupId>
+                <artifactId>maskers</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

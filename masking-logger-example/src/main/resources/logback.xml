@@ -4,7 +4,7 @@
     <property name="CONSOLE_LOG_PATTERN"
               value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %X{x-header-to-log:-} %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 
-    <property name="PROPS_PROVIDER" value="spring"/>
+    <property name="PROPS_PROVIDER" value="sprin"/>
     <property name="LOGGER_TO_INCLUDE" value="me.maxhub.include1, me.maxhub"/>
     <property name="LOGGER_TO_IGNORE" value="me.maxhub.ignore1"/>
 

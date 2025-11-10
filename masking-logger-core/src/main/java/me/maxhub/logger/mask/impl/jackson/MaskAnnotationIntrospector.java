@@ -1,4 +1,4 @@
-package me.maxhub.logger.mask.impl.json.v2;
+package me.maxhub.logger.mask.impl.jackson;
 
 import com.fasterxml.jackson.databind.BeanProperty;
 
@@ -6,12 +6,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Objects;
 
-final class MaskAnnotationIntrospector {
+public final class MaskAnnotationIntrospector {
 
     private MaskAnnotationIntrospector() {
     }
 
-    static <A extends Annotation> A findAnnotation(BeanProperty property, Class<A> annotationType) {
+    public static <A extends Annotation> A findAnnotation(BeanProperty property, Class<A> annotationType) {
         if (Objects.isNull(property)) return null;
         var member = property.getMember();
         if (Objects.isNull(member)) return null;

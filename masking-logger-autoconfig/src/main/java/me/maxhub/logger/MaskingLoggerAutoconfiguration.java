@@ -5,14 +5,11 @@ import me.maxhub.logger.properties.LoggingProps;
 import me.maxhub.logger.spring.SpringContextHolder;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-
-import java.util.Collections;
 
 @AutoConfiguration
 public class MaskingLoggerAutoconfiguration {

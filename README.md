@@ -12,7 +12,7 @@ Add the dependency to your Maven project:
 <dependency>
     <groupId>me.maxhub</groupId>
     <artifactId>masking-logger-spring-boot-starter</artifactId>
-    <version>0.2.2</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 ### Configuration

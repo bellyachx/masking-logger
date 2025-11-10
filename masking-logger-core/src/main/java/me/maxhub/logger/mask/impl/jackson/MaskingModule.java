@@ -1,12 +1,12 @@
-package me.maxhub.logger.mask.impl.json.v2;
+package me.maxhub.logger.mask.impl.jackson;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-final class MaskingModule extends SimpleModule {
+public final class MaskingModule extends SimpleModule {
 
     private final MaskingPathConfig maskingPathConfig;
 
-    MaskingModule(MaskingPathConfig maskingPathConfig) {
+    public MaskingModule(MaskingPathConfig maskingPathConfig) {
         super("Masking");
         this.maskingPathConfig = maskingPathConfig;
     }

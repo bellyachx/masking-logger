@@ -3,11 +3,12 @@ package me.maxhub.logger.mask;
 import me.maxhub.logger.logback.encoder.enums.BodyType;
 import me.maxhub.logger.mask.enums.MaskerType;
 import me.maxhub.logger.mask.enums.MaskerVersion;
+import me.maxhub.logger.mask.impl.JsonMaskerV1;
+import me.maxhub.logger.mask.impl.JsonMaskerV2;
 import me.maxhub.logger.mask.impl.NOPMasker;
-import me.maxhub.logger.mask.impl.json.v1.JsonMaskerV1;
-import me.maxhub.logger.mask.impl.json.v2.JsonMaskerV2;
-import me.maxhub.logger.mask.impl.xml.XmlMasker;
+import me.maxhub.logger.mask.impl.XmlMasker;
 import me.maxhub.logger.properties.provider.PropertyProvider;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,8 +33,8 @@ public class DataMaskerFactory {
 
     public DataMasker create(BodyType bodyType) {
         var loggingProps = propertyProvider.getLoggingProps();
-        var enabled = loggingProps.getEnabled();
-        if (Boolean.FALSE.equals(enabled)) {
+        var enabled = Objects.nonNull(loggingProps) && BooleanUtils.isTrue(loggingProps.getEnabled());
+        if (!enabled) {
             return new NOPMasker(messageEncoderFactory.create(bodyType));
         }
 
@@ -63,7 +64,7 @@ public class DataMaskerFactory {
         var maskersMap = new HashMap<Class<? extends DataMasker>, DataMasker>();
         maskersMap.put(JsonMaskerV1.class, new JsonMaskerV1(propertyProvider));
         maskersMap.put(JsonMaskerV2.class, new JsonMaskerV2(propertyProvider));
-        maskersMap.put(XmlMasker.class, new XmlMasker());
+        maskersMap.put(XmlMasker.class, new XmlMasker(propertyProvider));
         return maskersMap;
     }
 }

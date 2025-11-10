@@ -1,18 +1,19 @@
 package me.maxhub.logger.encoder.impl;
 
-import me.maxhub.logger.encoder.MessageEncoder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import lombok.SneakyThrows;
 
-public class XmlEncoder implements MessageEncoder<Object> {
+public class XmlEncoder extends JacksonEncoder<Object> {
 
     @Override
+    @SneakyThrows
     public Object encode(Object message) {
-        // todo TBD
-        return "<data>encoded xml</data>";
+        return objectMapper.writeValueAsString(message);
     }
 
     @Override
-    public String toString(Object message) {
-        // todo TBD
-        return "<data>encoded xml</data>";
+    protected ObjectMapper initMapper() {
+        return new XmlMapper();
     }
 }

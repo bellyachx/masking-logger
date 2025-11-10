@@ -27,11 +27,9 @@ import org.slf4j.event.KeyValuePair;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
 import java.util.Objects;
 
-/**
- *
- */
 public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
 
     private static final byte[] LINE_SEPARATOR = System.lineSeparator().getBytes();
@@ -92,7 +90,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         if ("spring".equalsIgnoreCase(propertiesProvider)) {
             propertyProvider = new SpringPropertyProvider();
         }
-        messageEncoderFactory = new MessageEncoderFactory(propertyProvider, mapper);
+        messageEncoderFactory = new MessageEncoderFactory(propertyProvider);
         dataMaskerFactory = new DataMaskerFactory(propertyProvider, messageEncoderFactory);
 
         started = true;
@@ -111,7 +109,6 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
             .timestamp(event.getInstant())
             .logMessage(event.getFormattedMessage())
             .logLevel(event.getLevel().toString())
-            .message(event.getFormattedMessage())
             .tracing(buildTracing());
         fillWithProperties(logModel, event);
         // todo can we determine the approximate log size?
@@ -119,7 +116,7 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
         try {
             mapper.writer().writeValues(baos).write(logModel.build());
             baos.write(LINE_SEPARATOR);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             addError("Cannot encode log event", t);
         }
         return baos.toByteArray();
@@ -173,10 +170,12 @@ public class MaskingJsonEncoder extends EncoderBase<ILoggingEvent> {
                     case LoggingConstants.MSG_LIFECYCLE -> messageLifecycle = getMessageLifecycle(kvp);
                     case LoggingConstants.AS -> automatedSystem = getString(kvp);
                     case LoggingConstants.STATUS -> builder.status(getStatus(kvp, event));
+                    default -> { /* nothing to do */ }
                 }
             }
         }
 
+        // todo extend this. allow client to provide a custom headers provider impl
         var headersProvider = new DetailedHeadersProvider(propertyProvider, headersKvp);
         var headers = headersProvider.getHeaders();
         builder.headers(headers);

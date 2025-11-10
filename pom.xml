@@ -4,7 +4,7 @@
 
     <groupId>me.maxhub.logger</groupId>
     <artifactId>masking-logger</artifactId>
-    <version>0.2.2</version>
+    <version>0.3.0</version>
     <packaging>pom</packaging>
 
     <name>masking-logger</name>
@@ -17,6 +17,7 @@
         <module>masking-logger-spring-boot-starter</module>
         <module>masking-logger-annotations</module>
         <module>masking-logger-bom</module>
+        <module>maskers</module>
     </modules>
 
     <properties>

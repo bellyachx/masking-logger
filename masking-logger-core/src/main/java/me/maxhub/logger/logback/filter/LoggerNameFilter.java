@@ -17,6 +17,9 @@ public class LoggerNameFilter extends Filter<ILoggingEvent> {
     public FilterReply decide(ILoggingEvent event) {
         var loggerName = event.getLoggerName();
         if (containsAndStartsWith(includeLoggers, loggerName)) {
+            if (containsAndEquals(includeLoggers, loggerName)) {
+                return FilterReply.NEUTRAL;
+            }
             if (containsAndStartsWith(ignoreLoggers, loggerName)) {
                 return FilterReply.DENY;
             }
@@ -25,10 +28,12 @@ public class LoggerNameFilter extends Filter<ILoggingEvent> {
         return FilterReply.DENY;
     }
 
+    @SuppressWarnings("unused")
     public void addInclude(String loggerName) {
         addLoggers(includeLoggers, loggerName);
     }
 
+    @SuppressWarnings("unused")
     public void addIgnore(String loggerName) {
         addLoggers(ignoreLoggers, loggerName);
     }
@@ -51,6 +56,15 @@ public class LoggerNameFilter extends Filter<ILoggingEvent> {
     private boolean containsAndStartsWith(Set<String> loggers, String loggerName) {
         for (var logger: loggers) {
             if (loggerName.startsWith(logger)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsAndEquals(Set<String> loggers, String loggerName) {
+        for (var logger : loggers) {
+            if (loggerName.equals(logger)) {
                 return true;
             }
         }

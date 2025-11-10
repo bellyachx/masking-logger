@@ -24,7 +24,7 @@ public class LogModel {
     private String logMessage;
     private String logLevel;
     private String status;
-    private Map<String, String> headers; // todo use List<String> for map value?
+    private Map<String, String> headers;
     private String information;
     private Tracing tracing;
 }

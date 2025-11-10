@@ -1,6 +1,5 @@
 package me.maxhub.logger.mask;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import me.maxhub.logger.encoder.MessageEncoder;
 import me.maxhub.logger.encoder.impl.JsonEncoder;
 import me.maxhub.logger.encoder.impl.XmlEncoder;
@@ -18,22 +17,22 @@ public class MessageEncoderFactory {
     private final XmlEncoder xmlEncoder;
     private MessageEncoder<?> defaultEncoder;
 
-    public MessageEncoderFactory(PropertyProvider propertyProvider, ObjectMapper objectMapper) {
+    public MessageEncoderFactory(PropertyProvider propertyProvider) {
         this.propertyProvider = propertyProvider;
-        this.jsonEncoder = new JsonEncoder(objectMapper);
+        this.jsonEncoder = new JsonEncoder();
         this.xmlEncoder = new XmlEncoder();
     }
 
     public MessageEncoder<?> create() {
         if (!init()) {
-            return null;
+            return jsonEncoder; // use json encoder as fallback
         }
         return defaultEncoder;
     }
 
     public MessageEncoder<?> create(BodyType bodyType) {
         if (!init()) {
-            return null;
+            return jsonEncoder; // use json encoder as fallback
         }
         if (bodyType == BodyType.JSON) {
             return jsonEncoder;

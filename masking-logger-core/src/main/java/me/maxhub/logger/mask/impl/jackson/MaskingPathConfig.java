@@ -1,4 +1,4 @@
-package me.maxhub.logger.mask.impl.json.v2;
+package me.maxhub.logger.mask.impl.jackson;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import me.maxhub.logger.properties.provider.PropertyProvider;
@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Pattern;
 
-final class MaskingPathConfig implements Serializable {
+public final class MaskingPathConfig implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 108774835281027390L;
@@ -21,8 +21,8 @@ final class MaskingPathConfig implements Serializable {
     private boolean initialized = false;
 
     private final Set<String> rawPaths = new HashSet<>();
-    private final Set<JsonPointer> exactPointers = new HashSet<>();
-    private final Set<Pattern> wildcardPatterns = new HashSet<>();
+    private Set<JsonPointer> exactPointers = new HashSet<>();
+    private Set<Pattern> wildcardPatterns = new HashSet<>();
 
     public MaskingPathConfig(PropertyProvider propertyProvider) {
         this.propertyProvider = propertyProvider;
@@ -95,10 +95,6 @@ final class MaskingPathConfig implements Serializable {
 
     private boolean init() {
         if (initialized) {
-            return true;
-        }
-
-        if (exactPointers != null && wildcardPatterns != null) {
             return true;
         }
 

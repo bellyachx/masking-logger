@@ -1,12 +1,14 @@
 package me.maxhub.logger.aop.http;
 
+import me.maxhub.logger.LogRequestConfig;
 import me.maxhub.logger.LoggingContext;
 import me.maxhub.logger.LogIgnore;
 import me.maxhub.logger.api.WLogger;
 import me.maxhub.logger.Mask;
-import me.maxhub.logger.mask.impl.json.v2.MaskedParameter;
+import me.maxhub.logger.mask.MaskedParameter;
 import me.maxhub.logger.util.LoggingConstants;
 import me.maxhub.logger.util.MessageLifecycle;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -27,34 +29,48 @@ import java.util.Objects;
 @Aspect
 public class RequestMappingInterceptor {
 
-    @Around("@annotation(org.springframework.web.bind.annotation.RequestMapping) || " +
-        "@annotation(org.springframework.web.bind.annotation.GetMapping) || " +
-        "@annotation(org.springframework.web.bind.annotation.PostMapping) || " +
-        "@annotation(org.springframework.web.bind.annotation.PutMapping) || " +
-        "@annotation(org.springframework.web.bind.annotation.DeleteMapping) || " +
-        "@annotation(org.springframework.web.bind.annotation.PatchMapping)")
+    /**
+     * Intercepts incoming HTTP requests.
+     *
+     * @param joinPoint the join point
+     * @return the intercepted method's return value
+     * @throws Throwable an exception that can occur during the intercepted method's execution
+     */
+    @Around("""
+        @annotation(org.springframework.web.bind.annotation.RequestMapping) ||
+        @annotation(org.springframework.web.bind.annotation.GetMapping) ||
+        @annotation(org.springframework.web.bind.annotation.PostMapping) ||
+        @annotation(org.springframework.web.bind.annotation.PutMapping) ||
+        @annotation(org.springframework.web.bind.annotation.DeleteMapping) ||
+        @annotation(org.springframework.web.bind.annotation.PatchMapping)""")
+    // the `joinPoint.proceed()` can throw a `Throwable` so we have to throw it up the stack. this is to suppress the checkstyle warning.
+    @SuppressWarnings("IllegalThrows")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         Class<?> clazz = getClass();
+        LogRequestConfig logRequestConfig = null;
         try {
             var signature = (MethodSignature) joinPoint.getSignature();
             var method = signature.getMethod();
-            var args = joinPoint.getArgs();
-            clazz = method.getDeclaringClass();
+            logRequestConfig = method.getAnnotation(LogRequestConfig.class);
+            if (Objects.isNull(logRequestConfig) || logRequestConfig.logRequest()) {
+                var args = joinPoint.getArgs();
+                clazz = method.getDeclaringClass();
 
-            var methodContext = buildMethodContext(method, args);
+                var methodContext = buildMethodContext(method, args);
 
-            @SuppressWarnings({"java:S2259", "ConstantConditions"}) // cannot be null in a web environment
-            var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            var requestUri = request.getRequestURI();
-            var httpMethod = request.getMethod();
+                @SuppressWarnings({"java:S2259", "ConstantConditions"}) // cannot be null in a web environment
+                var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                var requestUri = request.getRequestURI();
+                var httpMethod = request.getMethod();
 
-            var requestHeaders = methodContext.getRequestHeaders();
-            WLogger.with(clazz, Level.INFO)
-                .message("Incoming HTTP Request: [{}] - [{}] ", httpMethod, requestUri)
-                .headers(requestHeaders)
-                .messageBody(new MessageBody(methodContext))
-                .messageLifecycle(MessageLifecycle.RECEIVED)
-                .log();
+                var requestHeaders = methodContext.getRequestHeaders();
+                WLogger.with(clazz, Level.INFO)
+                    .message("Incoming HTTP Request: [{}] - [{}] ", httpMethod, requestUri)
+                    .headers(requestHeaders)
+                    .messageBody(new MessageBody(methodContext))
+                    .messageLifecycle(MessageLifecycle.RECEIVED)
+                    .log();
+            }
         } catch (Exception e) {
             WLogger.error()
                 .message("Error occurred when logging request").eventBuilder()
@@ -65,25 +81,29 @@ public class RequestMappingInterceptor {
         var response = joinPoint.proceed();
 
         try {
-            Map<String, String> headers;
-            Object responseBody;
-            if (response instanceof ResponseEntity<?> responseEntity) {
-                headers = responseEntity.getHeaders().toSingleValueMap();
-                responseBody = responseEntity.getBody();
-            } else {
-                // noinspection unchecked
-                headers = (Map<String, String>) LoggingContext.get(LoggingConstants.HEADERS);
-                responseBody = response;
+            if (Objects.isNull(logRequestConfig) || logRequestConfig.logResponse()) {
+                Map<String, String> headers;
+                Object responseBody;
+                if (response instanceof ResponseEntity<?> responseEntity) {
+                    headers = responseEntity.getHeaders().toSingleValueMap();
+                    responseBody = responseEntity.getBody();
+                } else {
+                    // noinspection unchecked
+                    headers = (Map<String, String>) LoggingContext.get(LoggingConstants.HEADERS);
+                    responseBody = response;
+                }
+                WLogger.with(clazz, Level.INFO)
+                    .message("Returning HTTP Response")
+                    .headers(headers)
+                    .messageBody(responseBody)
+                    .messageLifecycle(MessageLifecycle.SENT)
+                    .log();
             }
-            WLogger.with(clazz, Level.INFO)
-                .message("Returning HTTP Response")
-                .headers(headers)
-                .messageBody(responseBody)
-                .messageLifecycle(MessageLifecycle.SENT)
-                .log();
         } catch (Exception e) {
             WLogger.error()
-                .message("Error occurred when logging response").eventBuilder()
+                .message("Error occurred when logging response")
+                .throwable(e)
+                .eventBuilder()
                 .setCause(e)
                 .log();
         }

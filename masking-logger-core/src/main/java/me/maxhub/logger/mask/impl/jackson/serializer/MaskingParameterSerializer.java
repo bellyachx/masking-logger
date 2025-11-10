@@ -1,15 +1,17 @@
-package me.maxhub.logger.mask.impl.json.v2;
+package me.maxhub.logger.mask.impl.jackson.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import me.maxhub.logger.mask.MaskSupport;
+import me.maxhub.logger.mask.MaskedParameter;
 
 import java.io.IOException;
 import java.util.Objects;
 
-final class MaskingParameterSerializer extends StdSerializer<MaskedParameter> {
+public final class MaskingParameterSerializer extends StdSerializer<MaskedParameter> {
 
-    MaskingParameterSerializer() {
+    public MaskingParameterSerializer() {
         super(MaskedParameter.class);
     }
 
@@ -19,7 +21,6 @@ final class MaskingParameterSerializer extends StdSerializer<MaskedParameter> {
             provider.defaultSerializeNull(gen);
             return;
         }
-        // I'm sure there is a better way to do this (maybe with BeanSerializerModifier), but it works, and that is what matters :)
-        new MaskingSerializer(true).serialize(value.getValue(), gen, provider);
+        gen.writeString(MaskSupport.mask(String.valueOf(value.value())));
     }
 }
